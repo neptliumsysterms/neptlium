@@ -6,7 +6,9 @@
     "outDir": "./dist",
     "declaration": true,
     "declarationMap": true,
-    "emitDeclarationOnly": false
+    "emitDeclarationOnly": false,
+    "lib": ["ES2022", "DOM"],
+    "types": ["node"]
   },
   "include": ["src/**/*"]
 }
