@@ -13,12 +13,12 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
-    "importsNotUsedAsValues": "error",
     "incremental": true,
     "declaration": true,
     "declarationMap": true,
     "noEmitOnError": true,
     "moduleDetection": "force",
+    "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
       "@netlium/config": ["./"],

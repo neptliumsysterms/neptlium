@@ -1,7 +1,8 @@
 import { createRequire } from "node:module";
-import { FlatCompat } from "eslint-config-prettier";
+import prettierConfig from "eslint-config-prettier";
 
 const require = createRequire(import.meta.url);
+const { FlatCompat } = prettierConfig;
 const compat = new FlatCompat({
   baseDirectory: new URL(".", import.meta.url).pathname
 });
