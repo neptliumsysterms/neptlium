@@ -1,7 +1,14 @@
+import { AuthShell } from "./components/AuthShell";
+import { AuthCard } from "./components/AuthCard";
+import { NetliumMark } from "./components/NetliumMark";
+
 export default function AuthLoading() {
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-      <p className="text-slate-400">Loading...</p>
-    </div>
+    <AuthShell>
+      <AuthCard className="flex flex-col items-center gap-4 py-12 text-center">
+        <NetliumMark size={36} animated />
+        <p className="text-body-sm text-text-muted">Loading&hellip;</p>
+      </AuthCard>
+    </AuthShell>
   );
 }

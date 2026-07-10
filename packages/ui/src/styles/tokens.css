@@ -45,6 +45,18 @@
   --color-info: #2bd4ff;
   --color-info-foreground: #0b1016;
 
+  /* ---- Emerald accent (premium onboarding surfaces only — e.g. the auth
+     experience — kept separate from --color-primary so the rest of the
+     product's blue accent system is untouched). Leans teal — emerald with a
+     restrained cyan influence — so it never reads as "startup mint green." ---- */
+  --color-accent-emerald: #2dd4bf;
+  --color-accent-emerald-strong: #14b8a6;
+  --color-accent-emerald-foreground: #04201c;
+
+  /* Warm white — auth surfaces only, kept separate from --color-text-primary
+     (the rest of the product's neutral-white text) per the same reasoning. */
+  --color-text-warm: #f6f3ee;
+
   /* ---- Typography ----
      --font-inter-sans / --font-ibm-plex-mono are set by next/font (via its `variable`
      option) on <html> in the consuming app; these theme keys just reference them with
@@ -105,6 +117,10 @@
   --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.34);
   --shadow-focus-ring: 0 0 0 3px rgba(77, 130, 255, 0.35);
   --shadow-glow: 0 0 0 1px rgba(77, 130, 255, 0.16), 0 20px 60px rgba(77, 130, 255, 0.18);
+  --shadow-focus-ring-emerald: 0 0 0 1px rgba(45, 212, 191, 0.5);
+  --shadow-glow-emerald: 0 0 0 1px rgba(45, 212, 191, 0.12), 0 20px 60px rgba(45, 212, 191, 0.14);
+  --shadow-card-floating: 0 1px 0 rgba(255, 255, 255, 0.02) inset, 0 1px 2px rgba(0, 0, 0, 0.24), 0 8px 24px rgba(0, 0, 0, 0.2);
+  --color-border-whisper: rgba(255, 255, 255, 0.07);
 }
 
 /* ---- Motion (plain custom properties — not Tailwind utilities, consumed by CSS
@@ -134,5 +150,29 @@
   }
   50% {
     background-position: 100% 50%;
+  }
+}
+
+@keyframes netlium-glow-drift {
+  0%,
+  100% {
+    transform: translate3d(-1%, -0.6%, 0) scale(1);
+    opacity: 0.22;
+  }
+  50% {
+    transform: translate3d(1%, 0.6%, 0) scale(1.015);
+    opacity: 0.32;
+  }
+}
+
+@keyframes netlium-breathe {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
   }
 }

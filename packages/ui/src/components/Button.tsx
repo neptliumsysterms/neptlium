@@ -3,18 +3,19 @@
 import { forwardRef } from "react";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import type { HTMLMotionProps } from "framer-motion";
 import { cva, type VariantProps } from "class-variance-authority";
 import { Loader2 } from "lucide-react";
 import { cn } from "./utils/cn";
 
 export const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-body font-medium transition-colors duration-150 ease-out focus-visible:outline-none focus-visible:shadow-[var(--shadow-focus-ring)] disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-body font-medium transition duration-150 ease-out hover:-translate-y-px active:translate-y-0 active:brightness-95 focus-visible:outline-none focus-visible:shadow-[var(--shadow-focus-ring)] disabled:pointer-events-none disabled:opacity-50 disabled:hover:translate-y-0",
   {
     variants: {
       variant: {
         primary: "bg-primary text-primary-foreground hover:brightness-110 shadow-sm",
+        accent: "bg-accent-emerald text-accent-emerald-foreground hover:brightness-105 shadow-sm",
         secondary:
           "bg-surface-3 text-text-primary border border-border-default hover:border-border-hover",
         ghost: "bg-transparent text-text-secondary hover:bg-surface-2 hover:text-text-primary",
@@ -64,7 +65,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     );
   }
 
-  const tapAnimation = disabled || loading ? {} : { whileTap: { scale: 0.97 } };
+  const tapAnimation =
+    disabled || loading
+      ? {}
+      : { whileTap: { scale: 0.98, transition: { duration: 0.15, ease: [0.16, 1, 0.3, 1] as const } } };
 
   return (
     <motion.button
@@ -74,7 +78,20 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       disabled={disabled || loading}
       {...(props as HTMLMotionProps<"button">)}
     >
-      {loading && <Loader2 className="size-4 animate-spin" aria-hidden="true" />}
+      <AnimatePresence initial={false}>
+        {loading && (
+          <motion.span
+            key="spinner"
+            initial={{ opacity: 0, scale: 0.85, width: 0 }}
+            animate={{ opacity: 1, scale: 1, width: "auto" }}
+            exit={{ opacity: 0, scale: 0.85, width: 0 }}
+            transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+            className="inline-flex overflow-hidden"
+          >
+            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+          </motion.span>
+        )}
+      </AnimatePresence>
       {children}
     </motion.button>
   );
