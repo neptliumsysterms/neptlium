@@ -1,4 +1,5 @@
 export const onboardingSteps = [
+  { key: "identity", label: "Identity" },
   { key: "purpose", label: "Purpose" },
   { key: "profile", label: "Profile" },
   { key: "security", label: "Security" },

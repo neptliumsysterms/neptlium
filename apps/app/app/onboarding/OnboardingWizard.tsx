@@ -9,6 +9,7 @@ import { AuthCard } from "../(auth)/components/AuthCard";
 import { NetliumMark } from "../(auth)/components/NetliumMark";
 import { onboardingSteps } from "./wizard-steps";
 import { initialWizardState, wizardReducer } from "./wizardReducer";
+import { IdentityStep } from "./steps/IdentityStep";
 import { PurposeStep } from "./steps/PurposeStep";
 import { IndividualProfileStep } from "./steps/IndividualProfileStep";
 import { OrganizationProfileStep } from "./steps/OrganizationProfileStep";
@@ -41,6 +42,7 @@ export function OnboardingWizard() {
       <AuthCard size="wide">
         <AnimatePresence mode="wait" initial={false}>
           <StepTransition key={currentStep.key} stepKey={currentStep.key}>
+            {currentStep.key === "identity" && <IdentityStep data={state.data} onNext={handleNext} />}
             {currentStep.key === "purpose" && <PurposeStep data={state.data} onNext={handleNext} />}
             {currentStep.key === "profile" &&
               (state.data.investorType && isOrganizationPurpose(state.data.investorType) ? (

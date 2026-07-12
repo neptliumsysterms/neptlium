@@ -14,6 +14,16 @@ export function isOrganizationPurpose(investorType: InvestorType): boolean {
   return investorType !== "individual";
 }
 
+// `residenceCountry` (not `country`) — the flat ProvisioningPayload also
+// carries `country` from organizationProfileStepSchema for the
+// organization's country, and the two must not collide when merged.
+export const identityStepSchema = z.object({
+  firstName: z.string().min(1, "First name is required.").max(100),
+  lastName: z.string().min(1, "Last name is required.").max(100),
+  residenceCountry: z.string().min(1, "Country is required.").max(100)
+});
+export type IdentityStepInput = z.infer<typeof identityStepSchema>;
+
 export const purposeStepSchema = z.object({
   investorType: z.enum(investorTypes),
   purpose: z.string().min(1, "Tell us the purpose of this account.").max(500)
@@ -62,6 +72,9 @@ export type ComplianceStepInput = z.infer<typeof complianceStepSchema>;
 // `individualProfileStepSchema` / `organizationProfileStepSchema`.
 export const provisioningPayloadSchema = z
   .object({
+    firstName: z.string().min(1).max(100),
+    lastName: z.string().min(1).max(100),
+    residenceCountry: z.string().min(1).max(100),
     investorType: z.enum(investorTypes),
     purpose: z.string().min(1).max(500),
     primaryObjective: z.string().max(200).optional(),

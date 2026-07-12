@@ -70,6 +70,10 @@ export async function submitProvisioning(input: ProvisioningPayload): Promise<Pr
   const { error: profileError } = await supabase
     .from("profiles")
     .update({
+      first_name: data.firstName,
+      last_name: data.lastName,
+      full_name: `${data.firstName} ${data.lastName}`.trim(),
+      country: data.residenceCountry,
       investor_type: data.investorType,
       purpose: data.purpose,
       organization_id: organizationId,
