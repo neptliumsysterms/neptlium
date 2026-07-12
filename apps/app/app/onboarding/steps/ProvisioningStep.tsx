@@ -47,8 +47,12 @@ export function ProvisioningStep({ data }: ProvisioningStepProps) {
         return;
       }
 
-      const result = await submitProvisioning(parsed.data);
-      if (!cancelled) setOutcome(result);
+      try {
+        const result = await submitProvisioning(parsed.data);
+        if (!cancelled) setOutcome(result);
+      } catch {
+        if (!cancelled) setOutcome({ ok: false, error: "Something went wrong while finalizing your account." });
+      }
     }
 
     run();
@@ -63,7 +67,8 @@ export function ProvisioningStep({ data }: ProvisioningStepProps) {
   useEffect(() => {
     if (revealComplete && outcome?.ok && !redirectedRef.current) {
       redirectedRef.current = true;
-      router.push("/dashboard");
+      router.refresh();
+      router.replace("/dashboard/portfolio");
     }
   }, [revealComplete, outcome, router]);
 
