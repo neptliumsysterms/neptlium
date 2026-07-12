@@ -87,8 +87,8 @@ export function ProvisioningStep({ data }: ProvisioningStepProps) {
           return (
             <li
               key={item}
-              className="flex items-center gap-3 text-body-sm text-text-primary transition-all duration-200 ease-out"
-              style={{ opacity: shown ? 1 : 0, transform: shown ? "translateY(0)" : "translateY(4px)" }}
+              className="flex items-center gap-3 text-body-sm text-text-primary transition-opacity duration-200 ease-out"
+              style={{ opacity: shown ? 1 : 0 }}
             >
               {shown ? (
                 <Check className="size-4 shrink-0 text-accent-emerald" aria-hidden="true" />
