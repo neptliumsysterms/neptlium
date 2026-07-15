@@ -91,7 +91,7 @@ create or replace function public.provision_account(
   p_first_name                  text,
   p_last_name                   text,
   p_residence_country           text,
-  p_compliance_acknowledged_at  timestamptz,
+  p_compliance_acknowledged     boolean,
 
   -- Individual-only fields
   p_primary_objective           text    default null,
@@ -156,8 +156,8 @@ begin
     raise exception 'purpose is required' using errcode = 'P0005';
   end if;
 
-  if p_compliance_acknowledged_at is null then
-    raise exception 'compliance_acknowledged_at is required' using errcode = 'P0005';
+  if p_compliance_acknowledged is not true then
+    raise exception 'compliance must be explicitly acknowledged' using errcode = 'P0005';
   end if;
 
   -- Organization accounts require an org name.
@@ -258,7 +258,7 @@ begin
     preferred_currency         = p_preferred_currency,
     risk_preference            = p_risk_preference,
     compliance_status          = 'active',
-    compliance_acknowledged_at = p_compliance_acknowledged_at,
+    compliance_acknowledged_at = now(),
     provisioned_at             = now()
   where id = v_user_id;
 
@@ -280,19 +280,19 @@ $$;
 -- Historical default-privilege grants from earlier migrations may have
 -- granted EXECUTE to anon or authenticated; revoke explicitly to be safe.
 revoke all     on function public.provision_account(
-  text, text, text, text, text, timestamptz,
+  text, text, text, text, text, boolean,
   text, text, text, text,
   text, text, text, text, text, text, text
 ) from public;
 
 revoke execute on function public.provision_account(
-  text, text, text, text, text, timestamptz,
+  text, text, text, text, text, boolean,
   text, text, text, text,
   text, text, text, text, text, text, text
 ) from anon;
 
 grant execute on function public.provision_account(
-  text, text, text, text, text, timestamptz,
+  text, text, text, text, text, boolean,
   text, text, text, text,
   text, text, text, text, text, text, text
 ) to authenticated;

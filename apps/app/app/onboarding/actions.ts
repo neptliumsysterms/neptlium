@@ -39,7 +39,7 @@ export async function submitProvisioning(input: ProvisioningPayload): Promise<Pr
     p_first_name: data.firstName,
     p_last_name: data.lastName,
     p_residence_country: data.residenceCountry,
-    p_compliance_acknowledged_at: new Date().toISOString(),
+    p_compliance_acknowledged: true,
 
     // Individual-only fields
     p_primary_objective: data.primaryObjective ?? null,

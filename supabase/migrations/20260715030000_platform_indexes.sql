@@ -6,6 +6,8 @@
 -- create an index automatically) are NOT repeated here.
 --
 -- Skipped as already covered by UNIQUE constraints:
+--   - organizations(owner_id)  covered by organizations_owner_id_unique
+--                              (added in 20260715020000_atomic_provisioning)
 --   - wallets(profile_id)      covered by wallets_profile_id_unique
 --   - wallets(portfolio_id)    covered by wallets_portfolio_id_unique
 --   - investment_portfolios(profile_id)  covered by the UNIQUE NOT NULL in the table DDL
@@ -15,10 +17,6 @@
 -- CONCURRENTLY if running against a live production database with high write
 -- volume. For an initial migration on empty tables CONCURRENTLY is unnecessary.
 -- ---------------------------------------------------------------------------
-
--- organizations(owner_id) — look up organization by owning user
-create index if not exists idx_organizations_owner_id
-  on public.organizations (owner_id);
 
 -- profiles(organization_id) — look up profiles belonging to an organization
 create index if not exists idx_profiles_organization_id

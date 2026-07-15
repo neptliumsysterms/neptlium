@@ -74,7 +74,7 @@ set local "request.jwt.claims" to '{"sub":"11111111-0000-0000-0000-000000000001"
 -- Test 3: provision_account returns JSON with portfolio_id and wallet_id
 select isnt(
   (select public.provision_account(
-    'individual', 'Personal wealth', 'Alice', 'Smith', 'US', now(),
+    'individual', 'Personal wealth', 'Alice', 'Smith', 'US', true,
     'Long-term growth', 'experienced', 'USD', 'balanced',
     null, null, null, null, null, null, null
   )->>'portfolio_id'),
@@ -109,7 +109,7 @@ select is(
 select lives_ok(
   $$
     perform public.provision_account(
-      'individual', 'Personal wealth', 'Alice', 'Smith', 'US', now(),
+      'individual', 'Personal wealth', 'Alice', 'Smith', 'US', true,
       'Long-term growth', 'experienced', 'USD', 'balanced',
       null, null, null, null, null, null, null
     );
@@ -144,7 +144,7 @@ set local "request.jwt.claims" to '{"sub":"22222222-0000-0000-0000-000000000002"
 select lives_ok(
   $$
     perform public.provision_account(
-      'family_office', 'Multi-gen wealth', 'Bob', 'Jones', 'GB', now(),
+      'family_office', 'Multi-gen wealth', 'Bob', 'Jones', 'GB', true,
       null, null, null, null,
       'Jones Family Office', 'Principal', null, 'Finance', 'GB', '1-10', null
     );
@@ -366,7 +366,7 @@ set local "request.jwt.claims" to '{"sub":"33333333-0000-0000-0000-000000000003"
 select throws_ok(
   $$
     select public.provision_account(
-      'hacker', 'Bad type', 'Eve', 'Mal', 'US', now(),
+      'hacker', 'Bad type', 'Eve', 'Mal', 'US', true,
       null, null, null, null,
       null, null, null, null, null, null, null
     );
@@ -379,7 +379,7 @@ select throws_ok(
 select throws_ok(
   $$
     select public.provision_account(
-      'individual', 'Personal wealth', '   ', 'Smith', 'US', now(),
+      'individual', 'Personal wealth', '   ', 'Smith', 'US', true,
       'Growth', 'experienced', 'USD', 'balanced',
       null, null, null, null, null, null, null
     );
@@ -392,7 +392,7 @@ select throws_ok(
 select throws_ok(
   $$
     select public.provision_account(
-      'family_office', 'Multi-gen wealth', 'Bob', 'Jones', 'GB', now(),
+      'family_office', 'Multi-gen wealth', 'Bob', 'Jones', 'GB', true,
       null, null, null, null,
       null, null, null, null, null, null, null
     );

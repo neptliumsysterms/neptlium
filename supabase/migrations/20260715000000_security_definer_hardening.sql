@@ -97,24 +97,36 @@ revoke execute on function public.rls_auto_enable()
 --    Without a fixed search_path, a SECURITY DEFINER function runs with the
 --    caller's search_path, which can be manipulated to shadow pg_catalog or
 --    public objects, leading to privilege-escalation or data-spoofing.
---    ALTER FUNCTION … SET search_path = 'public' pins it without changing
---    function logic.
+--
+--    Safe path rationale:
+--      pg_catalog  — ensures built-ins (upper, lower, now, gen_random_uuid
+--                    in PG 14+) always resolve correctly regardless of
+--                    any public-schema shadowing.
+--      public      — the schema where all application tables and functions
+--                    live; required for cross-function calls such as
+--                    confirm_crypto_deposit → credit_balance.
+--
+--    gen_random_uuid() is a built-in of PostgreSQL 14+ located in
+--    pg_catalog. It does NOT require the extensions schema (pgcrypto's
+--    gen_random_uuid resides in extensions but is superseded by the
+--    built-in). The path pg_catalog, public is therefore both correct
+--    and sufficient for all five functions below.
 -- -------------------------------------------------------------------------
 
 alter function public.confirm_crypto_deposit(uuid, text, text, numeric, text)
-  set search_path = 'public';
+  set search_path = pg_catalog, public;
 
 alter function public.confirm_payment_intent(uuid)
-  set search_path = 'public';
+  set search_path = pg_catalog, public;
 
 alter function public.credit_balance(uuid, text, text, numeric, text, uuid)
-  set search_path = 'public';
+  set search_path = pg_catalog, public;
 
 alter function public.create_withdrawal_request(text, text, numeric, text)
-  set search_path = 'public';
+  set search_path = pg_catalog, public;
 
 alter function public.is_admin(uuid)
-  set search_path = 'public';
+  set search_path = pg_catalog, public;
 
 
 -- -------------------------------------------------------------------------
