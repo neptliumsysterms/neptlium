@@ -10,10 +10,10 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-const fontVariables = {
-  ["--font-inter-sans" as string]: "Inter, ui-sans-serif, system-ui, sans-serif",
-  ["--font-ibm-plex-mono" as string]: '"IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace'
-} as CSSProperties;
+const fontVariables: CSSProperties & Record<"--font-inter-sans" | "--font-ibm-plex-mono", string> = {
+  "--font-inter-sans": "Inter, ui-sans-serif, system-ui, sans-serif",
+  "--font-ibm-plex-mono": '"IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace'
+};
 
 export default function RootLayout({
   children
