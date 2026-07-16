@@ -4,23 +4,38 @@ import type { ReactNode } from "react";
 import { MotionConfig } from "framer-motion";
 import { AuthBackground } from "./AuthBackground";
 import { TrustFooter } from "./TrustFooter";
-import { NetliumMark } from "./NetliumMark";
+import { NeptliumMark } from "./NeptliumMark";
 
 export interface AuthShellProps {
   readonly children: ReactNode;
 }
 
+/**
+ * Auth shell layout.
+ *
+ * - Neptlium mark top-left, no text beside it.
+ * - Content column: centered, 420px max-width, responsive padding.
+ * - Trust footer at the bottom.
+ * - Form sits directly on the background — no outer card boundary.
+ */
 export function AuthShell({ children }: AuthShellProps) {
   return (
     <MotionConfig reducedMotion="user">
-      <div className="relative isolate flex min-h-screen flex-col items-center justify-start overflow-hidden px-6 py-20">
+      <div className="relative isolate flex min-h-screen min-h-dvh flex-col px-6 py-10 sm:px-10">
         <AuthBackground />
-        <div className="flex w-full flex-col items-center gap-14">
-          <div className="flex items-center gap-2">
-            <NetliumMark size={22} />
-            <span className="text-body-sm font-semibold tracking-tight text-text-secondary">Netlium</span>
-          </div>
-          <div className="w-full">{children}</div>
+
+        {/* Top-left mark */}
+        <div className="mb-12 flex w-full max-w-[560px] self-start sm:mb-14">
+          <NeptliumMark size={36} />
+        </div>
+
+        {/* Content */}
+        <div className="flex flex-1 items-center justify-center">
+          <div className="w-full max-w-[420px]">{children}</div>
+        </div>
+
+        {/* Trust footer */}
+        <div className="mt-12 flex w-full justify-center">
           <TrustFooter />
         </div>
       </div>

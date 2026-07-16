@@ -1,8 +1,12 @@
+import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
+import { getCurrentProfile } from "@/lib/auth/session";
 import { OnboardingWizard } from "./OnboardingWizard";
 
 export default async function OnboardingPage() {
-  await requireUser();
+  const user = await requireUser();
+  const profile = await getCurrentProfile();
+  if (profile?.provisionedAt) redirect("/dashboard");
 
-  return <OnboardingWizard />;
+  return <OnboardingWizard email={user.email ?? "Verified account"} />;
 }
