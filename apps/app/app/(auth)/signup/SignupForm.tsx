@@ -81,9 +81,13 @@ export function SignupForm() {
           </div>
 
           <div className="flex flex-col gap-3 pt-2">
-            <Button variant="cta" size="lg" className={ctaClass} href="mailto:">
+            {/* Opens the device default mail client — standard open-mail-app convention */}
+            <a
+              href={`mailto:${email}`}
+              className="inline-flex h-12 w-full items-center justify-center rounded-full [background:var(--gradient-cta-primary)] text-[15px] font-semibold text-white shadow-sm hover:brightness-110"
+            >
               Open email
-            </Button>
+            </a>
             <Button
               variant="outline"
               size="lg"

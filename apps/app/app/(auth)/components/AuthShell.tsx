@@ -21,7 +21,7 @@ export interface AuthShellProps {
 export function AuthShell({ children }: AuthShellProps) {
   return (
     <MotionConfig reducedMotion="user">
-      <div className="relative isolate flex min-h-dvh flex-col px-6 py-10 sm:px-10">
+      <div className="relative isolate flex min-h-screen min-h-dvh flex-col px-6 py-10 sm:px-10">
         <AuthBackground />
 
         {/* Top-left mark */}

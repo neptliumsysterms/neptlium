@@ -26,7 +26,7 @@ export interface OnboardingShellProps {
 export function OnboardingShell({ children, currentStepKey, completedStepKeys }: OnboardingShellProps) {
   return (
     <MotionConfig reducedMotion="user">
-      <div className="min-h-dvh flex flex-col bg-canvas">
+      <div className="min-h-screen min-h-dvh flex flex-col bg-canvas">
         <OnboardingHeader />
 
         {/* Mobile progress bar — hidden on desktop */}
