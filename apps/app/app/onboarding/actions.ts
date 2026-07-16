@@ -24,10 +24,11 @@ export async function getOnboardingDraft(): Promise<OnboardingDraft> {
     .select("data, step_index")
     .eq("user_id", user.id)
     .maybeSingle();
+  const parsed = onboardingPayloadSchema.partial().safeParse(data?.data);
 
   return {
-    data: onboardingPayloadSchema.partial().catch({}).parse(data?.data ?? {}) as Partial<ProvisioningPayload>,
-    stepIndex: Math.min(Math.max(data?.step_index ?? 0, 0), 7)
+    data: parsed.success ? (parsed.data as Partial<ProvisioningPayload>) : {},
+    stepIndex: parsed.success ? Math.min(Math.max(data?.step_index ?? 0, 0), 7) : 0
   };
 }
 
@@ -96,7 +97,7 @@ export async function submitProvisioning(input: ProvisioningPayload): Promise<Pr
       full_name: `${data.firstName} ${data.lastName}`,
       country: data.country,
       investor_type: data.investorType,
-      purpose: data.investorType,
+      purpose: data.investorType.replaceAll("_", " "),
       organization_id: organizationId,
       compliance_status: "active",
       compliance_acknowledged_at: now,
