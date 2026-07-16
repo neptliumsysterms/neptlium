@@ -78,9 +78,9 @@ export function OnboardingWizard({ email }: { readonly email: string }) {
       return;
     }
 
-    const nextStep = Math.min(stepIndex + 1, 6);
+    const nextStep = Math.min(stepIndex + 1, 7);
     try {
-      await saveOnboardingDraft({ data, stepIndex: Math.min(nextStep, 5) });
+      await saveOnboardingDraft({ data, stepIndex: nextStep });
       setStepIndex(nextStep);
     } catch {
       setError("Your progress could not be saved. Check your connection and try again.");

@@ -3,7 +3,7 @@
 create table if not exists "public"."onboarding_drafts" (
   "user_id" uuid primary key references auth.users(id) on delete cascade,
   "data" jsonb not null default '{}'::jsonb,
-  "step_index" integer not null default 0 check ("step_index" between 0 and 5),
+  "step_index" integer not null default 0 check ("step_index" between 0 and 7),
   "updated_at" timestamp with time zone not null default now()
 );
 

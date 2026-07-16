@@ -27,14 +27,14 @@ export async function getOnboardingDraft(): Promise<OnboardingDraft> {
 
   return {
     data: onboardingPayloadSchema.partial().catch({}).parse(data?.data ?? {}) as Partial<ProvisioningPayload>,
-    stepIndex: Math.min(Math.max(data?.step_index ?? 0, 0), 5)
+    stepIndex: Math.min(Math.max(data?.step_index ?? 0, 0), 7)
   };
 }
 
 export async function saveOnboardingDraft(draft: OnboardingDraft): Promise<void> {
   const user = await requireUser();
   const parsed = onboardingPayloadSchema.partial().safeParse(draft.data);
-  if (!parsed.success || draft.stepIndex < 0 || draft.stepIndex > 5) return;
+  if (!parsed.success || draft.stepIndex < 0 || draft.stepIndex > 7) return;
 
   const supabase = await createSupabaseServerClient();
   await supabase.from("onboarding_drafts").upsert(
