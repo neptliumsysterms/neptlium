@@ -1,0 +1,138 @@
+/**
+ * Neptlium Design System — CSS Custom Properties
+ * BlackRock × Stripe institutional aesthetic.
+ *
+ * Import this file in any app to get the full token set:
+ *   @import "@neptlium/design-system/tokens.css";
+ *
+ * All color values are raw HSL channels (no hsl() wrapper) so they compose
+ * cleanly with Tailwind's opacity modifier syntax: bg-primary/50
+ */
+
+:root {
+  /* -------------------------------------------------------------------------
+   * Surfaces — obsidian / near-black institutional graphite
+   * ----------------------------------------------------------------------- */
+  --background: 0 0% 2%;             /* #050505 obsidian */
+  --foreground: 0 0% 93%;            /* #EDEDED soft institutional white */
+
+  --panel: 0 0% 5%;                  /* #0D0D0D */
+  --elevated: 0 0% 8.5%;             /* #161616 */
+
+  --card: 0 0% 6.7%;                 /* #111111 */
+  --card-foreground: 0 0% 93%;
+
+  --popover: 0 0% 6.7%;
+  --popover-foreground: 0 0% 93%;
+
+  /* -------------------------------------------------------------------------
+   * Brand — institutional blue / cyan / purple
+   * ----------------------------------------------------------------------- */
+  --primary: 217 91% 60%;            /* #3B82F6 */
+  --primary-foreground: 0 0% 100%;
+  --primary-glow: 189 94% 43%;       /* #06B6D4 cyan */
+
+  --secondary: 258 90% 66%;          /* #8B5CF6 purple */
+  --secondary-foreground: 0 0% 100%;
+
+  /* Institutional emerald accent — active/nav states */
+  --accent-emerald: 158 64% 45%;
+  --accent-emerald-foreground: 0 0% 100%;
+
+  /* -------------------------------------------------------------------------
+   * Semantic states
+   * ----------------------------------------------------------------------- */
+  --success: 158 64% 45%;            /* institutional emerald */
+  --success-foreground: 0 0% 100%;
+  --warning: 38 92% 50%;
+  --warning-foreground: 0 0% 0%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+
+  /* -------------------------------------------------------------------------
+   * Neutrals
+   * ----------------------------------------------------------------------- */
+  --muted: 0 0% 8%;
+  --muted-foreground: 0 0% 62%;      /* soft institutional gray */
+  --accent: 0 0% 10%;
+  --accent-foreground: 0 0% 93%;
+
+  --border: 0 0% 16%;                /* dark graphite */
+  --input: 0 0% 12%;
+  --ring: 158 64% 45%;
+
+  /* -------------------------------------------------------------------------
+   * Shape
+   * ----------------------------------------------------------------------- */
+  --radius: 0.625rem;
+
+  /* -------------------------------------------------------------------------
+   * Premium gradients
+   * ----------------------------------------------------------------------- */
+  --gradient-hero: radial-gradient(
+      ellipse 80% 60% at 50% -10%,
+      hsl(217 91% 60% / 0.18),
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 60% 50% at 80% 20%,
+      hsl(258 90% 66% / 0.12),
+      transparent 60%
+    ),
+    linear-gradient(180deg, hsl(0 0% 0%), hsl(0 0% 3%));
+
+  --gradient-primary: linear-gradient(
+    135deg,
+    hsl(217 91% 60%) 0%,
+    hsl(189 94% 43%) 50%,
+    hsl(258 90% 66%) 100%
+  );
+
+  --gradient-panel: linear-gradient(
+    180deg,
+    hsl(0 0% 8% / 0.9),
+    hsl(0 0% 4% / 0.55)
+  );
+
+  --gradient-text: linear-gradient(
+    180deg,
+    hsl(0 0% 100%),
+    hsl(215 20% 75%)
+  );
+
+  --gradient-border: linear-gradient(
+    135deg,
+    hsl(217 91% 60% / 0.5),
+    hsl(258 90% 66% / 0.3),
+    transparent
+  );
+
+  /* -------------------------------------------------------------------------
+   * Shadows
+   * ----------------------------------------------------------------------- */
+  --shadow-elevated: 0 24px 48px -24px hsl(0 0% 0% / 0.9);
+  --shadow-glow: 0 0 60px -10px hsl(217 91% 60% / 0.35);
+  --shadow-card: 0 1px 0 hsl(0 0% 100% / 0.04) inset,
+    0 20px 40px -20px hsl(0 0% 0% / 0.7);
+
+  /* -------------------------------------------------------------------------
+   * Typography
+   * ----------------------------------------------------------------------- */
+  --font-display: "Inter Tight", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* -------------------------------------------------------------------------
+   * Sidebar
+   * ----------------------------------------------------------------------- */
+  --sidebar-background: 0 0% 3%;
+  --sidebar-foreground: 0 0% 62%;
+  --sidebar-primary: 158 64% 45%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 0 0% 9%;
+  --sidebar-accent-foreground: 0 0% 93%;
+  --sidebar-border: 0 0% 15%;
+  --sidebar-ring: 158 64% 45%;
+}
