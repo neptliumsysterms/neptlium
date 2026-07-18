@@ -11,21 +11,21 @@ import {
 } from "lucide-react";
 
 export const SITE = {
-  name: "Netlium",
-  domain: "netlium.co",
+  name: "Neptlium",
+  domain: "neptlium.com",
   tagline: "The Operating System for Institutional Digital Capital.",
-  email: "access@netlium.co",
+  email: "access@neptlium.com",
   legal:
-    "Netlium provides financial infrastructure software. All allocation outputs are modeled and not guaranteed. Capital movement is subject to network, liquidity, and risk parameters.",
+    "Neptlium provides financial infrastructure software. All allocation outputs are modeled and not guaranteed. Capital movement is subject to network, liquidity, and risk parameters.",
 };
 
 /**
- * Marketing platform lives on netliumsystems.com.
+ * Marketing platform lives on neptlium.com.
  * Every authentication / product-access CTA redirects to the separate
- * application platform at app.netliumsystems.com. Never embed app functionality
+ * application platform at app.neptlium.com. Never embed app functionality
  * in the marketing site.
  */
-const APP_BASE = "https://app.netliumsystems.com";
+const APP_BASE = "https://app.neptlium.com";
 
 export const APP_URLS = {
   app: APP_BASE,
