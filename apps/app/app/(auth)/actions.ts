@@ -1,14 +1,30 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { createSupabaseServerClient } from "@netlium/lib/supabase/server";
 import {
   isValidEmail,
   meetsPasswordRequirements,
   readRequiredField,
-  resolveOrigin,
   safeInternalPath,
 } from "./auth-utils";
+
+/**
+ * Resolves the app's public origin for building absolute redirect URLs (e.g.
+ * Supabase's emailRedirectTo). Server actions have no request URL of their
+ * own, so this prefers an explicit env var and falls back to the forwarded
+ * host headers set by the platform's proxy.
+ */
+async function resolveOrigin(): Promise<string> {
+  const configured = process.env.NEXT_PUBLIC_SITE_URL;
+  if (configured) return configured.replace(/\/$/, "");
+
+  const headerList = await headers();
+  const host = headerList.get("x-forwarded-host") ?? headerList.get("host");
+  const protocol = headerList.get("x-forwarded-proto") ?? "https";
+  return `${protocol}://${host}`;
+}
 import { createNotification } from "@netlium/lib";
 import { recordSecurityEvent } from "@/lib/security/events";
 import { recordTrustedDevice } from "@/lib/security/deviceCookie";
@@ -61,9 +77,15 @@ export async function signup(
   _prevState: AuthActionState,
   formData: FormData,
 ): Promise<AuthActionState> {
+  const firstName = readRequiredField(formData, "firstName");
+  const lastName = readRequiredField(formData, "lastName");
   const email = readRequiredField(formData, "email");
   const password = readRequiredField(formData, "password");
   const confirmPassword = readRequiredField(formData, "confirmPassword");
+  const acceptedTerms = formData.get("acceptedTerms") === "on";
+
+  if (!firstName) return { error: "First name is required.", success: false };
+  if (!lastName) return { error: "Last name is required.", success: false };
 
   if (!isValidEmail(email)) {
     return {
@@ -88,6 +110,13 @@ export async function signup(
     };
   }
 
+  if (!acceptedTerms) {
+    return {
+      error: "You must accept the Terms of Service and Privacy Policy.",
+      success: false,
+    };
+  }
+
   const supabase = await createSupabaseServerClient();
   const origin = await resolveOrigin();
 
@@ -96,6 +125,11 @@ export async function signup(
     password,
     options: {
       emailRedirectTo: `${origin}/auth/confirm`,
+      data: {
+        first_name: firstName,
+        last_name: lastName,
+        full_name: `${firstName} ${lastName}`,
+      },
     },
   });
 
@@ -115,6 +149,43 @@ export async function signup(
   };
 }
 
+export async function verifyEmailOtp(
+  _prevState: AuthActionState,
+  formData: FormData,
+): Promise<AuthActionState> {
+  const email = readRequiredField(formData, "email");
+  const token = (formData.get("token") as string | null)?.trim() ?? "";
+
+  if (!isValidEmail(email))
+    return { error: "Enter a valid email address.", success: false };
+  if (!/^\d{6}$/.test(token))
+    return { error: "Enter the 6-digit code from your email.", success: false };
+
+  const supabase = await createSupabaseServerClient();
+
+  const { data, error } = await supabase.auth.verifyOtp({
+    email,
+    token,
+    type: "email",
+  });
+
+  if (error || !data.user) {
+    const msg = error?.message ?? "";
+    if (/expired/i.test(msg))
+      return { error: "Code expired. Request a new one below.", success: false };
+    if (/invalid/i.test(msg) || /not found/i.test(msg))
+      return { error: "Incorrect code. Check your email and try again.", success: false };
+    if (/rate.?limit/i.test(msg))
+      return { error: "Too many attempts. Please wait before trying again.", success: false };
+    return { error: "Verification failed. Please try again.", success: false };
+  }
+
+  await recordSecurityEvent(supabase, data.user.id, "signup");
+  await recordTrustedDevice(supabase, data.user.id);
+
+  redirect("/onboarding");
+}
+
 export async function resendVerification(
   _prevState: AuthActionState,
   formData: FormData,
@@ -124,23 +195,22 @@ export async function resendVerification(
     return { error: "Enter a valid email address.", success: false };
 
   const supabase = await createSupabaseServerClient();
-  const origin = await resolveOrigin();
+
   const { error } = await supabase.auth.resend({
     type: "signup",
     email,
-    options: { emailRedirectTo: `${origin}/auth/confirm` },
   });
 
   if (error) {
     return {
-      error: /rate limit/i.test(error.message)
+      error: /rate.?limit/i.test(error.message)
         ? "Too many attempts. Please wait before trying again."
         : "We couldn’t complete the request. Please try again.",
       success: false,
     };
   }
 
-  return { error: null, success: true, message: "Verification email resent." };
+  return { error: null, success: true, message: "A new code has been sent." };
 }
 
 export async function resetPassword(

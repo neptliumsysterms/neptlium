@@ -1,0 +1,240 @@
+/**
+ * Neptlium Design System — Shared Utility Classes
+ *
+ * Uses --color-* naming (direct hex values from tokens.css).
+ * Works in both apps:
+ *   apps/app  — --color-* defined by @theme in packages/ui/styles/tokens.css
+ *   apps/web  — --color-* defined by :root in @neptlium/design-system/tokens.css
+ *
+ * Import after tokens:
+ *   @import "@neptlium/design-system/tokens.css";
+ *   @import "@neptlium/design-system/utilities.css";
+ */
+
+/* ---------------------------------------------------------------------------
+ * Layout
+ * ------------------------------------------------------------------------- */
+.container-narrow {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 72rem;
+  padding-inline: 1.5rem;
+}
+@media (min-width: 640px) {
+  .container-narrow { padding-inline: 2rem; }
+}
+
+.container-wide {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 80rem;
+  padding-inline: 1.5rem;
+}
+@media (min-width: 640px) {
+  .container-wide { padding-inline: 2rem; }
+}
+
+/* ---------------------------------------------------------------------------
+ * Surface classes
+ * ------------------------------------------------------------------------- */
+.ds-panel {
+  background: var(--gradient-panel, linear-gradient(180deg, rgba(8, 14, 22, 0.9), rgba(4, 7, 11, 0.55)));
+  border: 1px solid var(--color-border-default, #1D2938);
+  border-radius: var(--radius-md, 0.5rem);
+  backdrop-filter: blur(8px);
+}
+
+.ds-panel-elevated {
+  background: var(--color-surface-2, #0B1420);
+  border: 1px solid var(--color-border-default, #1D2938);
+  border-radius: var(--radius-md, 0.5rem);
+  box-shadow: var(--shadow-card, 0 1px 0 rgba(255,255,255,0.02) inset, 0 20px 40px -20px rgba(0,0,0,0.7));
+}
+
+.ds-card {
+  background: var(--color-surface-1, #080E16);
+  border: 1px solid var(--color-border-default, #1D2938);
+  border-radius: var(--radius-md, 0.5rem);
+  box-shadow: var(--shadow-elevation-1, 0 1px 2px rgba(0,0,0,0.24));
+}
+
+/* ---------------------------------------------------------------------------
+ * Text gradients
+ * ------------------------------------------------------------------------- */
+.ds-text-gradient {
+  background: var(--gradient-text, linear-gradient(180deg, #f7fafc, #c4d2e2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.ds-text-gradient-primary {
+  background: var(--gradient-text-primary, linear-gradient(135deg, #4aaeff, #0B8CFF 50%, #8a7cf6));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ---------------------------------------------------------------------------
+ * Blueprint grid & texture overlays (position: absolute inside relative)
+ * ------------------------------------------------------------------------- */
+.ds-grid-pattern {
+  background-image:
+    linear-gradient(var(--color-border-hairline, #131C27) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-border-hairline, #131C27) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black, transparent 75%);
+}
+
+.ds-hairline {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-border-default, #1D2938) 30%,
+    var(--color-border-default, #1D2938) 70%,
+    transparent
+  );
+  height: 1px;
+}
+
+.ds-enterprise-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(29, 41, 56, 0.35) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(29, 41, 56, 0.35) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black, transparent 80%);
+  opacity: 0.6;
+}
+
+.ds-blueprint-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(29, 41, 56, 0.6) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(29, 41, 56, 0.6) 1px, transparent 1px),
+    linear-gradient(rgba(29, 41, 56, 0.28) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(29, 41, 56, 0.28) 1px, transparent 1px);
+  background-size: 140px 140px, 140px 140px, 28px 28px, 28px 28px;
+  mask-image: radial-gradient(ellipse 90% 85% at 50% 40%, black, transparent 82%);
+  opacity: 0.55;
+}
+
+.ds-accent-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(40% 50% at 12% 0%, rgba(11, 140, 255, 0.10), transparent 70%),
+    radial-gradient(40% 50% at 88% 100%, rgba(84, 55, 255, 0.10), transparent 70%);
+}
+
+.ds-noise-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.ds-section-seam {
+  position: relative;
+}
+.ds-section-seam::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(29, 41, 56, 0.9) 25%,
+    rgba(29, 41, 56, 0.9) 75%,
+    transparent
+  );
+}
+
+/* ---------------------------------------------------------------------------
+ * Interaction
+ * ------------------------------------------------------------------------- */
+.ds-card-lift {
+  transition:
+    transform 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 300ms ease,
+    box-shadow 300ms ease,
+    background-color 300ms ease;
+  will-change: transform;
+}
+.ds-card-lift:hover {
+  transform: translateY(-3px);
+  border-color: rgba(11, 140, 255, 0.4);
+  box-shadow:
+    0 24px 48px -28px rgba(0, 0, 0, 0.85),
+    0 0 0 1px rgba(11, 140, 255, 0.08) inset,
+    0 0 40px -18px rgba(11, 140, 255, 0.4);
+}
+
+.ds-enterprise-logo {
+  color: rgba(145, 164, 186, 0.7);
+  filter: grayscale(1);
+  opacity: 0.55;
+  transition:
+    opacity 300ms ease,
+    color 300ms ease,
+    filter 300ms ease,
+    transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ds-enterprise-logo:hover {
+  color: var(--color-text-primary, #f7fafc);
+  filter: grayscale(0);
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+/* CTA button using brand gradient */
+.ds-btn-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gradient-cta-primary, linear-gradient(90deg, #0B8CFF 0%, #1769F4 62%, #5437FF 100%));
+  color: #ffffff;
+  font-weight: 600;
+  border-radius: var(--radius-full, 9999px);
+  transition: filter var(--transition-base, 180ms cubic-bezier(0.16, 1, 0.3, 1));
+}
+.ds-btn-cta:hover { filter: brightness(1.1); }
+.ds-btn-cta:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus-ring, 0 0 0 3px rgba(11, 140, 255, 0.28));
+}
+
+/* ---------------------------------------------------------------------------
+ * Keyframes
+ * ------------------------------------------------------------------------- */
+@keyframes ds-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes ds-fade-up {
+  0%   { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ds-fade-in {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes ds-drift-slow {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%       { transform: translate3d(2%, -1.5%, 0) scale(1.06); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-motion-safe { animation: none !important; }
+}
