@@ -1,260 +1,632 @@
-# Neptlium — Authentication Architecture
+# Neptlium Authentication Architecture
 
-Supabase Auth is the single authentication and identity provider for Neptlium.
-No Clerk, Auth0, or competing auth system is used.
+## Overview
+
+Neptlium uses **Supabase Auth** as the core identity and authentication system.
+
+Authentication is designed for an institutional capital operating platform where security, governance, and user identity integrity are foundational.
+
+The authentication architecture consists of:
+
+- Supabase Auth — identity management and authentication
+- Supabase PostgreSQL — application data layer
+- Supabase Row Level Security — authorization enforcement
+- Resend — transactional email delivery infrastructure
+- Neptlium application — user experience layer
+
+The marketing website (`https://neptlium.com`) is separate from authentication.
+
+Authentication exists only inside:
+
+```text
+https://app.neptlium.com
+```
 
 ---
+
+# Authentication Responsibilities
+
+## Supabase Auth
+
+Supabase Auth is responsible for:
+
+- User registration
+- User identity creation
+- Password authentication
+- Session management
+- Email verification state
+- Password recovery
+- Secure token handling
+- Authentication lifecycle
+
+Supabase Auth remains the source of truth for user identity.
+
+---
+
+## Supabase Database
+
+The database manages application-level identity and platform access.
+
+Examples:
+
+- profiles
+- organizations
+- user roles
+- onboarding status
+- account metadata
+- security events
+- application permissions
+
+The application database must never replace Supabase Auth.
+
+---
+
+## Resend Email Infrastructure
+
+Neptlium uses **Resend** as the production transactional email delivery provider.
+
+Resend is responsible for delivering:
+
+- Email verification codes
+- Password reset emails
+- Security notifications
+- Account notifications
+- Future operational emails
+
+Resend does not authenticate users.
+
+The authentication relationship is:
+
+```
+Supabase Auth
+        |
+        |
+        ▼
+Generate authentication email event
+        |
+        |
+        ▼
+Resend SMTP Delivery
+        |
+        |
+        ▼
+User receives Neptlium email
+```
+
+---
+
+# Email Verification Flow
+
+Neptlium uses an OTP verification experience.
+
+Users verify their account inside the application.
+
+The user should not need to leave Neptlium and open a verification link from Gmail.
+
+The expected flow:
+
+```
+User creates account
+
+        ↓
+
+Supabase Auth creates user record
+
+        ↓
+
+Verification OTP generated
+
+        ↓
+
+Resend delivers verification email
+
+        ↓
+
+User enters verification code inside Neptlium
+
+        ↓
+
+Supabase validates OTP
+
+        ↓
+
+Email becomes verified
+
+        ↓
+
+User continues onboarding
+
+        ↓
+
+Dashboard access
+```
+
+---
+
+# OTP Verification Requirements
+
+The verification system must:
+
+- Generate secure verification codes
+- Deliver codes through Resend
+- Validate codes through Supabase Auth
+- Expire unused codes
+- Limit resend attempts
+- Prevent brute-force attempts
+- Never expose verification tokens in logs
+- Never store plaintext verification secrets
+
+Users should receive a clean experience:
+
+```
+Enter verification code
+
+[  _  _  _  _  _  _  ]
+
+Didn't receive a code?
+
+Resend code
+```
+
+---
+
+# Resend Configuration
+
+Production email delivery uses Resend SMTP.
+
+Supabase connects to Resend through SMTP configuration.
+
+Required Resend setup:
+
+1. Create Resend account.
+
+2. Verify the Neptlium sending domain.
+
+Recommended:
+
+```
+auth.neptlium.com
+```
+
+or
+
+```
+mail.neptlium.com
+```
+
+3. Configure DNS records in Namecheap:
+
+- SPF
+- DKIM
+- DMARC where applicable
+
+4. Create a dedicated Resend API key.
+
+5. Configure Supabase SMTP.
+
+---
+
+# Supabase SMTP Configuration
+
+Location:
+
+```
+Supabase Dashboard
+
+→ Authentication
+
+→ SMTP Settings
+```
+
+Configuration:
+
+```
+Provider:
+Custom SMTP
+
+Host:
+smtp.resend.com
+
+Port:
+465
+
+Username:
+resend
+
+Password:
+Resend API Key
+```
+
+Sender example:
+
+```
+Neptlium
+
+verify@auth.neptlium.com
+```
+
+---
+
+# Email Templates
+
+Supabase email templates must support the Neptlium OTP experience.
+
+Location:
+
+```
+Supabase Dashboard
+
+→ Authentication
+
+→ Email Templates
+```
+
+---
+
+# Confirm Signup Email
+
+Purpose:
+
+Deliver account verification code.
+
+Example:
+
+Subject:
+
+```
+Your Neptlium verification code
+```
+
+Body:
+
+```
+Welcome to Neptlium.
+
+Your verification code is:
+
+{{ .Token }}
+
+Enter this code inside the Neptlium application.
+
+This code expires shortly.
+
+If you did not create this account, ignore this email.
+```
+
+Requirements:
+
+- Clear code visibility
+- No external verification dependency
+- No unnecessary links
+- Professional institutional tone
+
+---
+
+# Password Reset Email
+
+Purpose:
+
+Allow users to securely recover account access.
+
+Requirements:
+
+- Secure expiration
+- Approved redirect URLs only
+- No token exposure
+- Resend delivery
+
+Example:
+
+Subject:
+
+```
+Reset your Neptlium password
+```
+
+---
+
+# Security Notification Emails
+
+Future notifications may include:
+
+- New login detected
+- Password changed
+- New device access
+- Transfer approval
+- Withdrawal confirmation
+- Account changes
+
+All delivered through Resend.
+
+---
+
+# Authentication Routes
+
+Production application:
+
+```
+https://app.neptlium.com
+```
+
+Authentication routes:
+
+```
+/sign-up
+
+/sign-in
+
+/verify-email
+
+/forgot-password
+
+/update-password
+
+/onboarding
+
+/dashboard
+```
+
+Only application routes should be used for authentication redirects.
+
+The marketing website is not part of authentication routing.
+
+---
+
+# Session Architecture
+
+Sessions are managed by Supabase Auth.
+
+Requirements:
+
+- Secure cookies
+- Server-side session validation
+- Token refresh handling
+- Protected application routes
+- No client-only authorization
+
+Authentication state must survive:
+
+- Browser refresh
+- Returning visits
+- Multiple tabs
+- Token renewal
+
+---
+
+# Protected Routes
+
+Protected routes include:
+
+```
+/dashboard
+
+/wallet
+
+/portfolio
+
+/treasury
+
+/transfers
+
+/reports
+
+/settings
+```
+
+Unauthenticated users must be redirected to:
+
+```
+/sign-in
+```
+
+Authenticated users without completed onboarding must go to:
+
+```
+/onboarding
+```
+
+Completed users may access:
+
+```
+/dashboard
+```
+
+---
+
+# User Provisioning
+
+When a user signs up:
+
+```
+Supabase Auth User
+
+        ↓
+
+Application Profile
+
+        ↓
+
+Onboarding Record
+
+        ↓
+
+Platform Access
+```
+
+Requirements:
+
+- One auth user = one profile
+- No duplicate profiles
+- User identity comes from Supabase Auth
+- Client cannot create arbitrary users
+- Client cannot assign privileged roles
+
+---
+
+# Row Level Security
+
+Supabase RLS remains the authorization authority.
+
+Requirements:
+
+- Users can only access their own data
+- Organizations enforce membership permissions
+- Roles are protected
+- Sensitive operations require server validation
+- Service role access remains server-only
+
+Frontend checks improve UX only.
+
+They do not replace RLS.
+
+---
+
+# Environment Variables
+
+Required production variables:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=
+
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+
+SUPABASE_SERVICE_ROLE_KEY=
+
+NEXT_PUBLIC_SITE_URL=https://app.neptlium.com
+```
+
+Never expose:
+
+```
+SUPABASE_SERVICE_ROLE_KEY
+```
+
+to browser code.
+
+---
+
+# Technical Implementation
 
 ## Client Architecture
 
-Four separate Supabase clients serve distinct contexts.
+Four Supabase clients serve distinct contexts inside `apps/app`:
 
-### Browser Client (`@netlium/lib/supabase` → `src/supabase/browser.ts`)
+| Client | Path | Context |
+|--------|------|---------|
+| Browser | `@netlium/lib/supabase` → `src/supabase/browser.ts` | Client Components — reads/writes session cookies via `createBrowserClient` |
+| Server | `@netlium/lib/supabase/server` | Server Components, Route Handlers, Server Actions — per-request via `createServerClient` |
+| Middleware | `@netlium/lib/supabase/middleware` | `apps/app/proxy.ts` — refreshes access token on every request (Next.js 16: `proxy.ts` replaces `middleware.ts`) |
+| Admin | `@netlium/lib/supabase/admin` | Server Actions only — uses `SUPABASE_SERVICE_ROLE_KEY`, bypasses RLS |
 
-Used in Client Components. Created with `@supabase/ssr`'s `createBrowserClient`.
-Automatically reads and writes session cookies. Singleton re-exported from the
-lib root.
-
-### Server Client (`@netlium/lib/supabase/server`)
-
-Used in Server Components, Route Handlers, and Server Actions. Created with
-`createServerClient` per-request from the `next/headers` cookie store.
-Can read cookies; session refresh cookies are written by the middleware.
-
-### Middleware Client (`@netlium/lib/supabase/middleware`)
-
-Used inside `apps/app/middleware.ts` via `updateSession(request)`. Intercepts
-every request, calls `supabase.auth.getUser()` to refresh the access token when
-expired, and propagates updated cookies to the response. **This is the mechanism
-that keeps sessions alive beyond the one-hour access-token window.**
-
-### Admin Client (`@netlium/lib/supabase/admin`)
-
-Uses the `SUPABASE_SERVICE_ROLE_KEY`. Bypasses Row Level Security. Imported
-only inside Server Actions and Route Handlers. Never imported from any client
-bundle. Used for provisioning operations (org creation, portfolio setup, role
-assignment) where the admin needs to write across multiple tables atomically.
+The Admin client is never imported in any client bundle.
 
 ---
 
-## Session and Cookie Behavior
+## Sign-Up and OTP Verification (Code-Level Flow)
 
-1. On sign-in or after email confirmation, Supabase sets a session cookie via
-   the Server Client or Route Handler.
-2. `apps/app/middleware.ts` runs on every request and refreshes the session if
-   the access token is expired (using the refresh token stored in the cookie).
-3. Server Components call `supabase.auth.getUser()` (never `getSession()` alone)
-   to get the authoritative server-verified identity.
-4. After sign-out, cookies are cleared and server routes reject stale sessions.
+`SignupForm.tsx` is a three-step client component at `/signup`:
+
+### Step 1 — Identity
+User enters first name, last name, email. Validated client-side before advancing.
+
+### Step 2 — Credentials
+User enters password, confirm password, and accepts Terms of Service.
+
+On submit, the `signup` server action (`apps/app/app/(auth)/actions.ts`) is called:
+
+```ts
+supabase.auth.signUp({
+  email,
+  password,
+  options: {
+    emailRedirectTo: `${origin}/auth/confirm`,
+    data: { first_name, last_name, full_name },
+  },
+})
+```
+
+Supabase creates an unconfirmed user and emails a **6-digit OTP code** via Resend.
+
+Account-enumeration protection: existing and new email addresses receive the same
+"check your email" response. Only genuine network/rate-limit errors produce error messages.
+
+### Step 3 — OTP Verification
+On `signup` success the form transitions to the verify step. The `OtpInput` component
+(`apps/app/app/(auth)/components/OtpInput.tsx`) renders six individual digit inputs
+with paste support and `autocomplete="one-time-code"`.
+
+On submit, the `verifyEmailOtp` server action is called:
+
+```ts
+supabase.auth.verifyOtp({ email, token, type: "email" })
+```
+
+On success: records a `signup` security event, records the trusted device, redirects to `/onboarding`.
+
+On failure: returns a typed error without redirecting — the user can retry or resend.
+
+| Supabase error | User message |
+|----------------|--------------|
+| `expired` | "Code expired. Request a new one below." |
+| `invalid` / `not found` | "Incorrect code. Check your email and try again." |
+| Rate limit | "Too many attempts. Please wait before trying again." |
+
+**Resend:** The resend button (30 s client-side cooldown) calls:
+
+```ts
+supabase.auth.resend({ type: "signup", email })
+```
+
+This triggers a new OTP code using the same email template.
 
 ---
 
-## Sign-Up Flow
-
-Route: `/signup` (alias: `/sign-up`)
-
-1. User fills in **first name**, **last name**, **email**, **password**,
-   **confirm password**, and accepts the Terms of Service.
-2. `SignupForm.tsx` (client component) validates locally and submits via
-   `useActionState` to the `signup` server action.
-3. `signup` action calls `supabase.auth.signUp()` with:
-   - `email`, `password`
-   - `options.data`: `{ first_name, last_name, full_name }` (stored in
-     `auth.users.raw_user_meta_data`)
-   - `options.emailRedirectTo`: `${NEXT_PUBLIC_SITE_URL}/auth/confirm`
-4. Supabase sends a confirmation email to the user.
-5. The form shows a verification-pending screen with a resend option (30s
-   cooldown enforced client-side; rate-limit error handled server-side).
-6. The `handle_new_user` database trigger fires on `auth.users INSERT` and
-   creates a row in `public.profiles` with `id = auth.users.id`, `email`,
-   `full_name`, `first_name`, `last_name` from user metadata.
-
-Account-enumeration protection: whether the email already exists or is new,
-the same success state is returned (only genuine network/rate-limit errors
-produce error messages).
-
----
-
-## Email Confirmation Flow
+## Email Confirmation Route (Link-Based — Password Recovery Only)
 
 Route: `/auth/confirm` (GET handler)
 
-Supabase email links land on `/auth/confirm?token_hash=...&type=signup`.
+This route is used for **password recovery**, not signup. Recovery emails land on
+`/auth/confirm?token_hash=...&type=recovery`.
 
-1. The Route Handler reads `token_hash` and `type` from the query string.
+1. Route Handler reads `token_hash` and `type` from the query string.
 2. Calls `supabase.auth.verifyOtp({ type, token_hash })`.
-3. On success: records a `signup` security event, records the trusted device,
-   and redirects to `/dashboard` (the dashboard's provisioning gate then
-   redirects to `/onboarding` if onboarding isn't complete).
-4. On failure or missing parameters: redirects to `/auth-error`.
-
-For password-recovery links (`type=recovery`): same flow but redirects to
-`/update-password` instead.
+3. On success for `recovery`: redirects to `/update-password`.
+4. On failure: redirects to `/auth-error`.
 
 ---
 
-## Sign-In Flow
+## Database Trigger
 
-Route: `/login` (alias: `/sign-in`)
-
-1. User enters email and password.
-2. `LoginForm.tsx` submits via `useActionState` to the `login` server action.
-3. `login` calls `supabase.auth.signInWithPassword()`.
-4. On success: records a `login` security event, records the trusted device,
-   then checks `profiles.provisioned_at`:
-   - Not provisioned → redirect to `/onboarding`
-   - Provisioned → redirect to `/dashboard`
-5. Errors: invalid credentials, network failures, and rate limits are handled
-   with safe user-facing messages. The raw Supabase error is never surfaced.
-
----
-
-## Session Persistence
-
-Sessions survive:
-- Browser refresh (middleware refreshes the token on each request)
-- Direct URL navigation (server component re-validates via `getUser()`)
-- Tab close and reopen (cookies persist per browser policy)
-- Token expiry (middleware exchanges the refresh token automatically)
-
-Sessions are invalidated by:
-- `supabase.auth.signOut({ scope: 'local' })` — signs out the current session
-- `supabase.auth.signOut({ scope: 'others' })` — signs out all other sessions
-
----
-
-## Application Profile Provisioning
-
-Every Supabase Auth user has exactly one row in `public.profiles` where
-`profiles.id = auth.users.id`.
-
-- **Creation**: `handle_new_user` trigger fires on `auth.users INSERT`. Inserts
-  a profile row with `id`, `email`, `full_name`, `first_name`, `last_name`.
-  Uses `ON CONFLICT (id) DO UPDATE` to safely backfill name fields from metadata
-  if the profile already exists.
-- **Idempotency**: The trigger is safe to fire more than once — the `ON CONFLICT`
-  clause prevents duplicates and only fills NULL columns.
-
-Full onboarding data (investor type, organization, country, compliance status,
-provisioned_at) is written by `submitProvisioning()` when the user completes the
-onboarding wizard.
-
----
-
-## Onboarding Gate
-
-`requireProvisionedUser()` in `apps/app/lib/auth/guards.ts`:
-- Calls `requireUser()` (redirects to `/login` if unauthenticated)
-- Fetches the profile and checks `profiles.provisioned_at`
-- Redirects to `/onboarding` if `provisioned_at` is null
-
-The dashboard layout calls this guard on every request. An authenticated user
-cannot access `/dashboard` until `provisioned_at` is set by the provisioning
-server action.
-
-The onboarding page (`/onboarding`) does the inverse: if `provisioned_at` is
-set it redirects to `/dashboard` immediately.
-
----
-
-## Row Level Security
-
-RLS is enabled on all user-owned tables. The canonical pattern:
+The `handle_new_user` trigger fires on `auth.users INSERT` and creates a row in
+`public.profiles`:
 
 ```sql
--- Users can only read their own rows
-create policy "profiles_select_own" on "public"."profiles"
-  for select using (auth.uid() = id);
-
--- Users can only update their own rows
-create policy "profiles_update_own" on "public"."profiles"
-  for update using (auth.uid() = id) with check (auth.uid() = id);
+id, email, full_name, first_name, last_name  -- from auth.users.raw_user_meta_data
 ```
 
-Tables with RLS:
-- `profiles` — select own, update own (provisioned_at set via admin client)
-- `organizations` — select own, update own
-- `investment_portfolios` — select own
-- `wallets` — select own
-- `wallet_transactions` — select own, insert own
-- `custody_addresses` — select own, insert own
-- `login_history` — select own
-- `trusted_devices` — select own, insert own, update own
-- `notifications` — select own, insert own, update own
-- `documents` — select own
-- `onboarding_drafts` — select own, insert own, update own
-- `user_roles` — select own
-- `audit_logs` — insert via service_role only
-
-Privileged columns (`compliance_status`, `provisioned_at`, `account_status`)
-are written only via the admin client in server actions. RLS prevents ordinary
-users from setting these via the anon or authenticated role.
-
----
-
-## Password Recovery Flow
-
-1. User visits `/reset-password` (alias: `/forgot-password`) and submits email.
-2. `resetPassword` action calls `supabase.auth.resetPasswordForEmail(email, {
-   redirectTo: '${origin}/auth/confirm' })`.
-3. Supabase sends a recovery email with a link to `/auth/confirm?type=recovery&token_hash=...`.
-4. `/auth/confirm` route handler calls `verifyOtp({ type: 'recovery', token_hash })`,
-   which establishes a recovery session, then redirects to `/update-password`.
-5. `/update-password` checks for an active session. If none, shows an expiry
-   message. If a session exists, shows the new-password form.
-6. `updatePassword` action calls `supabase.auth.updateUser({ password })`,
-   records a `password_updated` security event, and redirects to
-   `/password-updated`.
-
----
-
-## Protected Routes
-
-All routes under `/dashboard/*`, `/onboarding`, and server actions are protected
-server-side. The guard hierarchy:
-
-```
-requireUser()         — unauthenticated → /login
-requireProvisionedUser()  — no profile.provisioned_at → /onboarding
-requireRole(minRole)  — insufficient RBAC role → /dashboard
-```
-
-Guards use `redirect()` from `next/navigation`, which throws before returning
-any data, so unauthenticated users never see protected content even briefly.
-
-Redirect loop protection:
-- `/login` → already authenticated → `/dashboard`
-- `/dashboard` → not provisioned → `/onboarding`
-- `/onboarding` → not authenticated → `/login`
-- `/onboarding` → already provisioned → `/dashboard`
-
-None of these paths form a cycle.
-
----
-
-## Environment Variables
-
-| Variable | Where | Purpose |
-|----------|-------|---------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Client + Server | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Client + Server | Supabase publishable key (new format, replaces old anon JWT key) |
-| `SUPABASE_SERVICE_ROLE_KEY` | Server only | Bypasses RLS for admin ops |
-| `NEXT_PUBLIC_SITE_URL` | Server | Builds email redirect URLs |
-
-Copy `apps/app/.env.example` to `apps/app/.env.local` for local development.
+Uses `ON CONFLICT (id) DO UPDATE` — safe to fire more than once.
 
 ---
 
 ## Supabase Dashboard Configuration
 
+### Authentication > Settings
+
+```
+Confirm email:          enabled
+Email OTP expiry:       3600  (1 hour)
+Secure email change:    enabled
+Password min length:    8
+```
+
 ### Authentication > URL Configuration
 
-Set **Site URL** to your production domain:
+Site URL:
 ```
 https://app.neptlium.com
 ```
 
-Add the following to **Redirect URLs**:
+Redirect URLs:
 ```
 https://app.neptlium.com/auth/confirm
 https://app.neptlium.com/update-password
@@ -266,100 +638,117 @@ https://*.vercel.app/update-password
 
 ### Authentication > Email Templates
 
-**Confirm signup** — the `{{ .ConfirmationURL }}` token in the template resolves
-to a link containing `token_hash` and `type=signup`, which lands on
-`/auth/confirm`.
+**Confirm signup** — set subject and body to deliver the OTP code (see "Confirm Signup Email" section above). Use `{{ .Token }}`, not `{{ .ConfirmationURL }}`.
 
-**Reset password** — the `{{ .ConfirmationURL }}` resolves to a link with
-`type=recovery`, also landing on `/auth/confirm`.
-
-### Authentication > Providers
-
-- Email provider: enabled
-- Confirm email: enabled (recommended for production)
-- Secure email change: enabled
-- Password minimum length: 8 characters (enforced by the application too)
-
-### SMTP
-
-Configure a custom SMTP provider (Resend, Postmark, SendGrid, etc.) for reliable
-email delivery in production. Supabase's built-in email is rate-limited and not
-suitable for production traffic.
+**Reset password** — keep `{{ .ConfirmationURL }}` which resolves to `/auth/confirm?type=recovery&token_hash=...`.
 
 ---
 
-## Local Development Setup
+## Protected Route Guards
 
-```bash
-# Install dependencies (requires pnpm 11+)
-pnpm install
-
-# Copy env file
-cp apps/app/.env.example apps/app/.env.local
-# Fill in your Supabase project URL, anon key, and service role key
-
-# Start dev server
-pnpm --filter @netlium/app dev
+```
+requireUser()             — unauthenticated → /login
+requireProvisionedUser()  — no profile.provisioned_at → /onboarding
+requireRole(minRole)      — insufficient RBAC role → /dashboard
 ```
 
----
-
-## Vercel Production Setup
-
-1. In Vercel project settings, add these environment variables:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY`
-   - `NEXT_PUBLIC_SITE_URL` (set to your production domain)
-
-2. In Supabase Dashboard, add your Vercel domain and preview URL pattern to
-   the Redirect URLs list (see above).
-
----
-
-## Common Authentication Errors
-
-| Supabase error | User message shown |
-|----------------|-------------------|
-| `invalid_credentials` | "The email or password is incorrect." |
-| `email_not_confirmed` | "The email or password is incorrect." |
-| `already registered` | (silent — same success message shown) |
-| Rate limit | "Too many attempts. Please wait before trying again." |
-| Network failure | "We couldn't complete the request. Please try again." |
-| Expired OTP | Redirect to `/auth-error` with recovery link |
-| Expired recovery session | "/update-password" shows expiry message |
+Guards use `redirect()` from `next/navigation` — unauthenticated users never see
+protected content even briefly. No redirect cycles exist.
 
 ---
 
 ## Security Events
 
-The `login_history` table records key authentication events tied to the
-authenticated user's ID. Events logged:
-- `login` — successful sign-in
-- `logout` — explicit sign-out
-- `signup` — email confirmed
-- `password_updated` — password changed
-- `password_reset_requested` — (email sent)
-- `mfa_enrolled` — TOTP enrolled
-- `mfa_unenrolled` — TOTP removed
-- `sessions_revoked` — other sessions ended
+The `login_history` table records key authentication events:
+
+| Event | Trigger |
+|-------|---------|
+| `signup` | Email OTP verified |
+| `login` | Successful sign-in |
+| `logout` | Explicit sign-out |
+| `password_updated` | Password changed |
+| `password_reset_requested` | Recovery email sent |
+| `mfa_enrolled` | TOTP enrolled |
+| `mfa_unenrolled` | TOTP removed |
+| `sessions_revoked` | Other sessions ended |
 
 Sensitive data (passwords, tokens, codes) is never stored.
 
 ---
 
-## Deployment Checklist
+# Production Checklist
 
-- [ ] `NEXT_PUBLIC_SUPABASE_URL` set in Vercel
-- [ ] `NEXT_PUBLIC_SUPABASE_ANON_KEY` set in Vercel
-- [ ] `SUPABASE_SERVICE_ROLE_KEY` set in Vercel (environment: Production only)
-- [ ] `NEXT_PUBLIC_SITE_URL` set to production domain in Vercel
-- [ ] Supabase Site URL set to production domain
-- [ ] All redirect URLs added to Supabase allowlist
-- [ ] SMTP configured in Supabase for production email delivery
-- [ ] Email confirmation enabled in Supabase Auth settings
-- [ ] Secure email change enabled
-- [ ] All migrations applied to production Supabase project
-- [ ] RLS verified on all tables
-- [ ] `handle_new_user` trigger verified (creates profile on signup)
-- [ ] Test full flow: sign up → verify → onboard → dashboard → sign out → sign in
+Before onboarding real users:
+
+## Supabase
+
+- Authentication enabled
+- Email provider configured
+- OTP flow tested
+- SMTP connected to Resend
+- Redirect URLs configured
+- RLS verified
+- Migrations applied
+- Database backups enabled
+
+---
+
+## Resend
+
+- Domain verified
+- DNS records active
+- SMTP credentials configured
+- Sending reputation monitored
+
+---
+
+## Application
+
+- Signup tested
+- Verification code tested
+- Login tested
+- Password recovery tested
+- Session persistence tested
+- Sign out tested
+- Dashboard access tested
+- Protected routes tested
+
+---
+
+# Final Authentication Flow
+
+```
+Create Account
+
+↓
+
+Receive Neptlium OTP Email
+
+↓
+
+Enter Verification Code
+
+↓
+
+Supabase Confirms Identity
+
+↓
+
+Create Application Profile
+
+↓
+
+Complete Onboarding
+
+↓
+
+Access Neptlium Dashboard
+
+↓
+
+Manage Institutional Capital Operations
+```
+
+Neptlium authentication is built around:
+
+**Secure Identity. Verified Access. Institutional Trust.**

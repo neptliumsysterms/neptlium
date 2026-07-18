@@ -1,0 +1,38 @@
+-- =============================================================================
+-- Email OTP template configuration note
+-- =============================================================================
+-- This migration is intentionally a no-op SQL file.
+-- The OTP email template must be configured manually in the Supabase Dashboard
+-- because auth email templates are not configurable via SQL migrations.
+--
+-- REQUIRED MANUAL STEPS (Supabase Dashboard > Authentication > Email Templates):
+--
+-- 1. Template: "Confirm signup"
+--    Replace the default link-based template with an OTP code template.
+--    Suggested subject: "Your Neptlium verification code"
+--    Suggested body:
+--
+--      Your Neptlium verification code is:
+--
+--      {{ .Token }}
+--
+--      This code expires in 1 hour. Do not share it with anyone.
+--      If you did not create a Neptlium account, you can ignore this email.
+--
+-- 2. Template: "Magic Link" (if enabled)
+--    Update to show {{ .Token }} instead of {{ .ConfirmationURL }}.
+--
+-- 3. Authentication > Settings:
+--    - "Confirm email": enabled
+--    - "Email OTP expiry": 3600 (1 hour, or shorter for production)
+--    - "Secure email change": enabled
+--
+-- The application calls supabase.auth.verifyOtp({ email, token, type: "email" })
+-- to verify the 6-digit code entered by the user.
+--
+-- Resend flow calls supabase.auth.resend({ type: "signup", email }) which
+-- triggers a new OTP code email using the same template.
+-- =============================================================================
+
+-- No SQL changes required.
+select 1;

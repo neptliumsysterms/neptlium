@@ -1,14 +1,30 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { createSupabaseServerClient } from "@netlium/lib/supabase/server";
 import {
   isValidEmail,
   meetsPasswordRequirements,
   readRequiredField,
-  resolveOrigin,
   safeInternalPath,
 } from "./auth-utils";
+
+/**
+ * Resolves the app's public origin for building absolute redirect URLs (e.g.
+ * Supabase's emailRedirectTo). Server actions have no request URL of their
+ * own, so this prefers an explicit env var and falls back to the forwarded
+ * host headers set by the platform's proxy.
+ */
+async function resolveOrigin(): Promise<string> {
+  const configured = process.env.NEXT_PUBLIC_SITE_URL;
+  if (configured) return configured.replace(/\/$/, "");
+
+  const headerList = await headers();
+  const host = headerList.get("x-forwarded-host") ?? headerList.get("host");
+  const protocol = headerList.get("x-forwarded-proto") ?? "https";
+  return `${protocol}://${host}`;
+}
 import { createNotification } from "@netlium/lib";
 import { recordSecurityEvent } from "@/lib/security/events";
 import { recordTrustedDevice } from "@/lib/security/deviceCookie";

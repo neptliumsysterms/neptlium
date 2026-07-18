@@ -77,7 +77,6 @@ export function OnboardingWizard({ email }: { readonly email: string }) {
       })();
     }
     // Only run when stepIndex transitions to 6 (ready guards against running before draft loads)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stepIndex, ready]);
 
   const currentStep = onboardingSteps[stepIndex] ?? onboardingSteps[0];
