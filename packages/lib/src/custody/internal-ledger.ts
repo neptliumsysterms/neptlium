@@ -129,42 +129,32 @@ export class InternalLedgerCustodyProvider implements CustodyProvider {
   }
 
   async provisionDepositAddress(params: ProvisionDepositAddressParams): Promise<CustodyAddress> {
-    const reference = "NLM-" + globalThis.crypto.randomUUID().slice(0, 8).toUpperCase();
-
-    const { data, error } = await this.supabase
-      .from("custody_addresses")
-      .insert({
-        wallet_id: params.walletId,
-        profile_id: params.profileId,
-        provider: this.id,
-        asset: params.asset,
-        network: params.network,
-        address: reference
-      })
-      .select("id, asset, network, address, status, created_at")
-      .single();
+    // Uses SECURITY DEFINER function — validates wallet ownership server-side.
+    // Direct INSERT on custody_addresses is no longer permitted by RLS.
+    const { data, error } = await this.supabase.rpc("provision_deposit_address", {
+      p_wallet_id: params.walletId,
+      p_asset: params.asset,
+      p_network: params.network
+    });
 
     if (error) throw error;
     return toAddress(data as CustodyAddressRow);
   }
 
   async requestWithdrawal(params: RequestWithdrawalParams): Promise<CustodyTransaction> {
-    const { data, error } = await this.supabase
-      .from("wallet_transactions")
-      .insert({
-        wallet_id: params.walletId,
-        profile_id: params.profileId,
-        type: "withdrawal",
-        asset: params.asset,
-        network: params.network,
-        amount: params.amount,
-        status: "pending",
-        counterparty: params.destination
-      })
-      .select("id, type, asset, network, amount, status, reference, counterparty, created_at")
-      .single();
+    // Uses SECURITY DEFINER function — validates wallet ownership and
+    // available completed balance before creating a pending_review record.
+    // Direct INSERT on wallet_transactions is no longer permitted by RLS.
+    const { data, error } = await this.supabase.rpc("request_wallet_withdrawal", {
+      p_wallet_id: params.walletId,
+      p_asset: params.asset,
+      p_network: params.network,
+      p_amount: params.amount,
+      p_destination: params.destination
+    });
 
     if (error) throw error;
     return toTransaction(data as WalletTransactionRow);
   }
+
 }
