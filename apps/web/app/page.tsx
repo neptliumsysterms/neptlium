@@ -21,7 +21,6 @@ import {
   Banknote,
   type LucideIcon,
 } from "lucide-react";
-import { PageShell } from "@/components/layout/PageShell";
 import { CTAButton } from "@/components/ui/CTAButton";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { HeroLiveBackground } from "@/components/ui/HeroLiveBackground";
@@ -52,10 +51,7 @@ const enterpriseLogos = [
 
 const Home = () => {
   return (
-    <PageShell
-      title="Private Global Payments & Institutional AI Allocation"
-      description="Neptlium combines private financial infrastructure, programmable settlement rails, and AI-driven allocation systems into one sovereign-grade platform."
-    >
+    <>
       <CinematicLighting />
 
       {/* HERO */}
@@ -483,7 +479,7 @@ const Home = () => {
           </ScrollReveal>
         </div>
       </section>
-    </PageShell>
+    </>
   );
 };
 

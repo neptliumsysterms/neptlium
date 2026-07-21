@@ -1,14 +1,10 @@
-import { PageShell } from "@/components/layout/PageShell";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { CTAButton } from "@/components/ui/CTAButton";
 import { APP_URLS } from "@/lib/constants";
 
 const About = () => {
   return (
-    <PageShell
-      title="About"
-      description="Neptlium is built for XRP holders and capital allocators who want structured participation, not speculative trading."
-    >
+    <>
       <section className="relative overflow-hidden bg-gradient-hero">
         <div className="absolute inset-0 grid-pattern opacity-50" />
         <div className="container-wide relative py-24 sm:py-32">
@@ -73,7 +69,7 @@ const About = () => {
           </div>
         </div>
       </section>
-    </PageShell>
+    </>
   );
 };
 

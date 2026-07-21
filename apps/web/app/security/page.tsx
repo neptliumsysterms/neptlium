@@ -6,7 +6,6 @@ import {
   Activity,
   GitBranch,
 } from "lucide-react";
-import { PageShell } from "@/components/layout/PageShell";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { SecurityCard } from "@/components/ui/SecurityCard";
 import { CTAButton } from "@/components/ui/CTAButton";
@@ -53,10 +52,7 @@ const items = [
 
 const Security = () => {
   return (
-    <PageShell
-      title="Security"
-      description="Non-custodial wallet verification, no private key storage, encrypted infrastructure assumptions, and disciplined capital movement controls."
-    >
+    <>
       <section className="relative overflow-hidden bg-gradient-hero">
         <div className="absolute inset-0 grid-pattern opacity-50" />
         <div className="container-wide relative py-24 sm:py-32">
@@ -91,7 +87,7 @@ const Security = () => {
           </div>
         </div>
       </section>
-    </PageShell>
+    </>
   );
 };
 

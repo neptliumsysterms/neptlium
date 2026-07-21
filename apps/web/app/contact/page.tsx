@@ -1,6 +1,7 @@
+"use client";
+
 import { FormEvent, useState } from "react";
 import { Mail, Building2, Send, CheckCircle2 } from "lucide-react";
-import { PageShell } from "@/components/layout/PageShell";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { CTAButton } from "@/components/ui/CTAButton";
 import { SITE, APP_URLS } from "@/lib/constants";
@@ -14,10 +15,7 @@ const Contact = () => {
   };
 
   return (
-    <PageShell
-      title="Contact"
-      description="Reach the Neptlium team for institutional access, partnership, or platform inquiries."
-    >
+    <>
       <section className="relative overflow-hidden bg-gradient-hero">
         <div className="absolute inset-0 grid-pattern opacity-50" />
         <div className="container-wide relative py-24 sm:py-32">
@@ -141,7 +139,7 @@ const Contact = () => {
           </aside>
         </div>
       </section>
-    </PageShell>
+    </>
   );
 };
 

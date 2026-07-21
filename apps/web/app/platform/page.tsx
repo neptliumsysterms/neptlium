@@ -6,7 +6,6 @@ import {
   Radio,
   FileBarChart,
 } from "lucide-react";
-import { PageShell } from "@/components/layout/PageShell";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { FeatureCard } from "@/components/ui/FeatureCard";
 import { CTAButton } from "@/components/ui/CTAButton";
@@ -53,10 +52,7 @@ const layers = [
 
 const Platform = () => {
   return (
-    <PageShell
-      title="Platform"
-      description="Neptlium's six-layer institutional infrastructure for XRP-native capital allocation."
-    >
+    <>
       <section className="relative overflow-hidden bg-gradient-hero">
         <div className="absolute inset-0 grid-pattern opacity-50" />
         <div className="container-wide relative py-24 sm:py-32">
@@ -109,7 +105,7 @@ const Platform = () => {
           </div>
         </div>
       </section>
-    </PageShell>
+    </>
   );
 };
 

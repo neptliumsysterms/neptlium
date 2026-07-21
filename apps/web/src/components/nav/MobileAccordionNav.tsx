@@ -1,5 +1,7 @@
+"use client";
+
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { ChevronDown, X } from "lucide-react";
 import { CTAButton } from "@/components/ui/CTAButton";
 import { Logo } from "@/components/ui/Logo";
@@ -44,7 +46,7 @@ export const MobileAccordionNav = ({ onNavigate, onClose }: MobileAccordionNavPr
               return (
                 <li key={entry.to}>
                   <Link
-                    to={entry.to}
+                    href={entry.to}
                     onClick={onNavigate}
                     className="flex w-full items-center justify-between py-4 text-base font-medium text-foreground"
                   >
@@ -79,7 +81,7 @@ export const MobileAccordionNav = ({ onNavigate, onClose }: MobileAccordionNavPr
                 >
                   <div className="min-h-0 overflow-hidden">
                     <Link
-                      to={entry.to}
+                      href={entry.to}
                       onClick={onNavigate}
                       className="mb-2 inline-flex items-center text-xs font-semibold uppercase tracking-[0.18em] text-primary"
                     >
@@ -97,7 +99,7 @@ export const MobileAccordionNav = ({ onNavigate, onClose }: MobileAccordionNavPr
                             {group.items.map((item) => (
                               <li key={item.label}>
                                 <Link
-                                  to={item.to}
+                                  href={item.to}
                                   onClick={onNavigate}
                                   className="flex items-start gap-3 rounded-md p-2.5 hover:bg-elevated"
                                 >
@@ -130,8 +132,11 @@ export const MobileAccordionNav = ({ onNavigate, onClose }: MobileAccordionNavPr
       {/* Bottom CTAs */}
       <div className="border-t border-border bg-panel px-6 py-5">
         <div className="flex flex-col gap-2.5">
-          <CTAButton href={APP_URLS.signup} variant="primary" size="md" showArrow>
-            Institutional Access
+          <CTAButton href={APP_URLS.signUp} variant="primary" size="md">
+            Sign up
+          </CTAButton>
+          <CTAButton href={APP_URLS.signIn} variant="outline" size="md">
+            Sign in
           </CTAButton>
         </div>
       </div>
