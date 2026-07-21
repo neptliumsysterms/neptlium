@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import type { NavEntry } from "@/lib/constants";
 import { cn } from "@/lib/utils";
@@ -51,7 +51,7 @@ export const MegaMenu = ({ entry, onNavigate }: MegaMenuProps) => {
                   {group.items.map((item) => (
                     <li key={item.label}>
                       <Link
-                        to={item.to}
+                        href={item.to}
                         onClick={onNavigate}
                         className="group flex items-start gap-3 rounded-md p-2.5 transition-colors hover:bg-elevated"
                         role="menuitem"
@@ -92,7 +92,7 @@ export const MegaMenu = ({ entry, onNavigate }: MegaMenuProps) => {
               </p>
               <div className="mt-auto pt-6">
                 <Link
-                  to={mega.footer.to}
+                  href={mega.footer.to}
                   onClick={onNavigate}
                   className="group inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary"
                 >

@@ -1,5 +1,8 @@
+"use client";
+
 import { useEffect, useRef, useState } from "react";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { CTAButton } from "@/components/ui/CTAButton";
 import { Logo } from "@/components/ui/Logo";
@@ -7,11 +10,12 @@ import { MegaMenu } from "@/components/nav/MegaMenu";
 import { MobileAccordionNav } from "@/components/nav/MobileAccordionNav";
 import { APP_URLS, NAV_ENTRIES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import { NavLink } from "@/components/NavLink";
 
 export const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
-  const location = useLocation();
+  const pathname = usePathname();
   const closeTimer = useRef<number | null>(null);
   const headerRef = useRef<HTMLElement | null>(null);
 
@@ -31,7 +35,7 @@ export const Header = () => {
   useEffect(() => {
     setMobileOpen(false);
     setOpenMenu(null);
-  }, [location.pathname]);
+  }, [pathname]);
 
   // Lock body scroll when mobile drawer open
   useEffect(() => {
@@ -69,7 +73,7 @@ export const Header = () => {
       className="sticky top-0 z-50 border-b border-border bg-[hsl(0_0%_3%/0.92)] shadow-[0_1px_0_hsl(0_0%_100%/0.03)_inset,0_10px_30px_-12px_hsl(0_0%_0%/0.9)] backdrop-blur-xl"
     >
       <div className="container-wide flex h-20 items-center justify-between gap-6">
-        <Link to="/" className="flex items-center" aria-label="Neptlium home">
+        <Link href="/" className="flex items-center" aria-label="Neptlium home">
           <Logo size={30} />
         </Link>
 
@@ -86,19 +90,13 @@ export const Header = () => {
               return (
                 <NavLink
                   key={entry.to}
-                  to={entry.to}
+                  href={entry.to}
                   onMouseEnter={() => {
                     cancelClose();
                     setOpenMenu(null);
                   }}
-                  className={({ isActive }) =>
-                    cn(
-                      "relative rounded-md px-3.5 py-2.5 text-[0.9375rem] font-semibold tracking-tight transition-colors after:absolute after:inset-x-3.5 after:-bottom-px after:h-px after:origin-left after:scale-x-0 after:bg-[hsl(var(--accent-emerald))] after:transition-transform after:duration-300 hover:after:scale-x-100",
-                      isActive
-                        ? "text-[hsl(var(--accent-emerald))] after:scale-x-100"
-                        : "text-[hsl(0_0%_72%)] hover:text-[hsl(0_0%_90%)]"
-                    )
-                  }
+                  className="relative rounded-md px-3.5 py-2.5 text-[0.9375rem] font-semibold tracking-tight transition-colors after:absolute after:inset-x-3.5 after:-bottom-px after:h-px after:origin-left after:scale-x-0 after:bg-[hsl(var(--accent-emerald))] after:transition-transform after:duration-300 hover:after:scale-x-100 text-[hsl(0_0%_72%)] hover:text-[hsl(0_0%_90%)]"
+                  activeClassName="text-[hsl(var(--accent-emerald))] after:scale-x-100"
                 >
                   {entry.label}
                 </NavLink>

@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { Mail } from "lucide-react";
 import { APP_URLS, FOOTER_LINKS, SITE } from "@/lib/constants";
 
@@ -8,7 +8,7 @@ export const Footer = () => {
       <div className="container-wide py-16">
         <div className="grid gap-12 lg:grid-cols-[1.4fr,1fr,1fr,1fr]">
           <div>
-            <Link to="/" className="flex items-center gap-2.5">
+            <Link href="/" className="flex items-center gap-2.5">
               <div className="flex h-8 w-8 items-center justify-center rounded-md bg-gradient-primary">
                 <span className="font-display text-sm font-bold text-primary-foreground">
                   N
@@ -39,7 +39,7 @@ export const Footer = () => {
                 {links.map((l) => (
                   <li key={l.label}>
                     <Link
-                      to={l.to}
+                      href={l.to}
                       className="text-sm text-foreground/80 transition-colors hover:text-primary"
                     >
                       {l.label}
@@ -66,7 +66,7 @@ export const Footer = () => {
             >
               Institutional Access
             </a>
-            <Link to="/contact" className="hover:text-foreground">
+            <Link href="/contact" className="hover:text-foreground">
               Contact
             </Link>
           </div>

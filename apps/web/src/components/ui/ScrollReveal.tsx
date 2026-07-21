@@ -1,4 +1,6 @@
-import { useEffect, useRef, useState, type ReactNode, type CSSProperties } from "react";
+"use client";
+
+import { useEffect, useRef, useState, type ReactNode, type CSSProperties, type ElementType } from "react";
 
 type Variant = "up" | "fade" | "scale" | "left" | "right";
 
@@ -8,7 +10,7 @@ interface ScrollRevealProps {
   delay?: number;
   threshold?: number;
   className?: string;
-  as?: keyof JSX.IntrinsicElements;
+  as?: ElementType;
   once?: boolean;
 }
 
@@ -74,7 +76,6 @@ export const ScrollReveal = ({
     willChange: "opacity, transform, filter",
   };
 
-  // @ts-expect-error dynamic tag
   return <Tag ref={ref} className={className} style={style}>{children}</Tag>;
 };
 

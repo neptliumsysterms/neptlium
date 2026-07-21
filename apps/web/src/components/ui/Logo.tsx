@@ -1,5 +1,6 @@
-import logoSrc from "/netlium-logo.png";
 import { cn } from "@/lib/utils";
+
+const logoSrc = "/netlium-logo.png";
 
 interface LogoProps {
   className?: string;

@@ -1,3 +1,5 @@
+"use client";
+
 import { Cpu, Network, ShieldCheck, Activity, Database, Radio } from "lucide-react";
 
 const SYSTEMS = [
