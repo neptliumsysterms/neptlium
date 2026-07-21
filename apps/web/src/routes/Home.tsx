@@ -19,6 +19,7 @@ import {
   Bitcoin,
   Coins,
   Banknote,
+  type LucideIcon,
 } from "lucide-react";
 import { PageShell } from "@/components/layout/PageShell";
 import { CTAButton } from "@/components/ui/CTAButton";
@@ -178,7 +179,7 @@ const Home = () => {
                 ["Programmable transfer infrastructure", Network],
                 ["Withdrawal orchestration", Workflow_],
                 ["Real-time balances", Activity],
-              ].map(([label, Icon]: any) => (
+              ].map(([label, Icon]: [string, LucideIcon]) => (
                 <li key={label} className="flex items-start gap-3 text-sm text-foreground/90">
                   <Icon className="mt-0.5 h-4 w-4 flex-none text-primary" />
                   <span>{label}</span>
@@ -218,7 +219,7 @@ const Home = () => {
                 ["Risk-aware positioning", ShieldCheck],
                 ["Treasury optimization", Activity],
                 ["Capital distribution modeling", Layers],
-              ].map(([label, Icon]: any) => (
+              ].map(([label, Icon]: [string, LucideIcon]) => (
                 <li key={label} className="flex items-start gap-3 text-sm text-foreground/90">
                   <Icon className="mt-0.5 h-4 w-4 flex-none text-primary" />
                   <span>{label}</span>
@@ -252,7 +253,7 @@ const Home = () => {
                 ["Multi-asset visibility", Layers],
                 ["Programmable withdrawals", Send],
                 ["Institutional accounting", Banknote],
-              ].map(([label, Icon]: any) => (
+              ].map(([label, Icon]: [string, LucideIcon]) => (
                 <li key={label} className="flex items-start gap-3 text-sm text-foreground/90">
                   <Icon className="mt-0.5 h-4 w-4 flex-none text-primary" />
                   <span>{label}</span>
@@ -321,7 +322,7 @@ const Home = () => {
                   [Cpu, "AI allocation", "Risk-aware positioning across programmable capital profiles."],
                   [Database, "Institutional ledger", "Append-only architecture with controlled state transitions."],
                   [ShieldCheck, "Enforced constraints", "Policy applied before any capital movement executes."],
-                ].map(([Icon, title, desc]: any) => (
+                ].map(([Icon, title, desc]: [LucideIcon, string, string]) => (
                   <div
                     key={title}
                     className="card-lift rounded-xl border border-neutral-200 bg-white p-6 shadow-[0_1px_0_hsl(0_0%_0%/0.03),0_16px_32px_-24px_hsl(0_0%_0%/0.25)]"
@@ -394,7 +395,7 @@ const Home = () => {
               [Radio, "Real-time monitoring", "Continuous integrity and anomaly observation."],
               [ShieldCheck, "Risk-aware execution", "Constraints enforced before any capital movement."],
               [Lock, "Non-custodial identity", "Wallet-based verification, not custody-based access."],
-            ].map(([Icon, title, desc]: any, i: number) => (
+            ].map(([Icon, title, desc]: [LucideIcon, string, string], i: number) => (
               <ScrollReveal
                 key={title}
                 variant="up"
@@ -524,7 +525,7 @@ const TerminalPreview = () => (
         ["Allocation · Conservative", 28],
         ["Allocation · Balanced", 46],
         ["Allocation · Institutional", 70],
-      ].map(([label, pct]: any) => (
+      ].map(([label, pct]: [string, number]) => (
         <div key={label}>
           <div className="flex items-center justify-between text-xs">
             <span className="text-muted-foreground">{label}</span>
@@ -642,7 +643,7 @@ const TreasuryMock = () => (
         [Coins, "USDC", "Base", "$24,103,221"],
         [Bitcoin, "BTC", "Native", "$18,940,005"],
         [Wallet, "ETH", "Base", "$5,167,802"],
-      ].map(([Icon, sym, rail, val]: any) => (
+      ].map(([Icon, sym, rail, val]: [LucideIcon, string, string, string]) => (
         <div
           key={sym}
           className="flex items-center justify-between rounded-md border border-border bg-background/50 px-3.5 py-3"
