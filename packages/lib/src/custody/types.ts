@@ -8,7 +8,7 @@ export interface CustodyNetwork {
   readonly label: string;
 }
 
-export type CustodyAddressStatus = "active" | "retired";
+export type CustodyAddressStatus = "active" | "pending_activation" | "suspended" | "retired";
 
 export interface CustodyAddress {
   readonly id: string;
@@ -26,7 +26,7 @@ export interface CustodyBalance {
 }
 
 export type CustodyTransactionType = "deposit" | "withdrawal" | "allocation" | "transfer";
-export type CustodyTransactionStatus = "pending" | "completed" | "failed" | "cancelled";
+export type CustodyTransactionStatus = "pending" | "pending_review" | "completed" | "failed" | "cancelled";
 
 export interface CustodyTransaction {
   readonly id: string;

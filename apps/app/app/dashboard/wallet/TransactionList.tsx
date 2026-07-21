@@ -4,6 +4,7 @@ import type { CustodyTransaction } from "@netlium/lib";
 const STATUS_TONE: Record<CustodyTransaction["status"], "success" | "warning" | "danger" | "neutral"> = {
   completed: "success",
   pending: "warning",
+  pending_review: "warning",
   failed: "danger",
   cancelled: "neutral"
 };

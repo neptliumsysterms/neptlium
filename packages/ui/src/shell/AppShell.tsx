@@ -1,39 +1,89 @@
 import type { ReactElement, ReactNode } from "react";
 
 /**
- * AppShell — The institutional UI container for Netlium Systems.
+ * AppShell — Institutional dashboard container for Neptlium.
  *
- * Provides the base layout structure:
- * - Sidebar navigation
- * - Main content area
- * - Institutional branding
+ * Desktop: fixed 240px sidebar + scrollable content area with topbar.
+ * Mobile: compact sticky header + main content + bottom navigation.
  *
- * All pages should render within this shell for consistency.
+ * Props:
+ *   sidebar        — nav links rendered inside the desktop sidebar
+ *   sidebarFooter  — user identity + sign-out anchored to sidebar bottom
+ *   mobileNav      — MobileNavigation component rendered at page bottom
+ *
+ * The legacy `header` prop is retained for backward compatibility but is no
+ * longer rendered — the sidebar wordmark and mobile header replace it.
  */
 export interface AppShellProps {
   readonly children: ReactNode;
   readonly sidebar?: ReactNode;
+  readonly sidebarFooter?: ReactNode;
+  readonly mobileNav?: ReactNode;
+  /** @deprecated Pass sidebarFooter instead. Retained for backward compat. */
   readonly header?: ReactNode;
 }
 
-export function AppShell({ children, sidebar, header }: AppShellProps): ReactElement {
+export function AppShell({
+  children,
+  sidebar,
+  sidebarFooter,
+  mobileNav
+}: AppShellProps): ReactElement {
   return (
-    <div className="flex min-h-screen flex-col bg-canvas text-text-primary md:flex-row">
-      <aside className="w-full shrink-0 border-b border-border-hairline bg-sidebar p-4 md:w-[280px] md:border-b-0 md:border-r md:p-5">
-        <div className="mb-4 px-1 text-body-sm font-semibold tracking-tight text-text-secondary md:mb-8">
-          Netlium
+    <div className="min-h-screen bg-canvas text-text-primary">
+      {/* ------------------------------------------------------------------ */}
+      {/* Desktop sidebar — hidden on mobile                                  */}
+      {/* ------------------------------------------------------------------ */}
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-border-hairline bg-sidebar md:flex">
+        {/* Wordmark */}
+        <div className="flex h-14 shrink-0 items-center border-b border-border-hairline px-5">
+          <span className="text-body-sm font-semibold tracking-tight text-text-primary">
+            Neptlium
+          </span>
         </div>
+
+        {/* Nav items */}
         {sidebar && (
-          <nav className="flex gap-1.5 overflow-x-auto md:block md:space-y-1 md:overflow-visible">{sidebar}</nav>
+          <nav
+            aria-label="Dashboard navigation"
+            className="flex-1 overflow-y-auto px-3 py-3"
+          >
+            {sidebar}
+          </nav>
+        )}
+
+        {/* Footer — user info + sign out */}
+        {sidebarFooter && (
+          <div className="shrink-0 border-t border-border-hairline p-3">
+            {sidebarFooter}
+          </div>
         )}
       </aside>
 
-      <div className="flex flex-1 flex-col overflow-hidden">
-        {header}
-        <main className="flex-1 overflow-auto p-6 md:p-8">
+      {/* ------------------------------------------------------------------ */}
+      {/* Main content column (offset by sidebar on desktop)                  */}
+      {/* ------------------------------------------------------------------ */}
+      <div className="flex flex-col md:pl-60">
+        {/* Mobile compact header */}
+        <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center border-b border-border-hairline bg-topnav px-4 md:hidden">
+          <span className="text-body-sm font-semibold tracking-tight text-text-primary">
+            Neptlium
+          </span>
+        </header>
+
+        {/* Desktop topbar placeholder — keeps content below fixed sidebar header */}
+        <div className="hidden h-14 shrink-0 border-b border-border-hairline bg-topnav md:block" aria-hidden="true" />
+
+        {/* Page content — extra bottom padding on mobile for bottom nav */}
+        <main className="flex-1 overflow-auto px-4 py-6 pb-28 md:px-8 md:py-8 md:pb-8">
           <div className="mx-auto w-full max-w-[1440px]">{children}</div>
         </main>
       </div>
+
+      {/* ------------------------------------------------------------------ */}
+      {/* Mobile bottom navigation                                            */}
+      {/* ------------------------------------------------------------------ */}
+      {mobileNav}
     </div>
   );
 }

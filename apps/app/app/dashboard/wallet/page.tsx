@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, EmptyState, StatCard } from "
 import { createSupabaseServerClient } from "@netlium/lib/supabase/server";
 import { InternalLedgerCustodyProvider } from "@netlium/lib";
 import { requireProvisionedUser } from "@/lib/auth";
-import { DepositAddressList } from "./DepositAddressList";
+import { DepositAddressCard } from "./DepositAddressCard";
 import { GenerateAddressButton, type AssetNetworkPair } from "./GenerateAddressButton";
 import { WithdrawalForm } from "./WithdrawalForm";
 import { TransactionList } from "./TransactionList";
@@ -53,22 +53,27 @@ export default async function WalletPage() {
     )
   ).flat();
 
-  const cashBalance = balances.find((balance) => balance.asset === "USD")?.amount ?? 0;
-  const pendingCount = transactions.filter((transaction) => transaction.status === "pending").length;
+  const cashBalance = balances.reduce((s, b) => s + b.amount, 0);
+  const pendingCount = transactions.filter(
+    (transaction) => transaction.status === "pending" || transaction.status === "pending_review"
+  ).length;
 
   return (
-    <div className="space-y-8 py-8">
+    <div className="space-y-6 py-4">
       <div>
-        <h1 className="text-h1 font-semibold tracking-tight text-text-primary">Neptlium Wallet</h1>
-        <p className="mt-2 text-body text-text-secondary">
-          Institutional custody infrastructure for funding, transfers, and withdrawals
+        <h1 className="text-[22px] font-semibold tracking-tight text-text-primary">Neptlium Wallet</h1>
+        <p className="mt-1.5 text-body text-text-secondary">
+          Funding references, withdrawals, and transaction history
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
-        <StatCard label="Cash balance" value={`$${cashBalance.toFixed(2)}`} />
-        <StatCard label="Pending transactions" value={String(pendingCount)} />
-        <StatCard label="Deposit references" value={String(addresses.length)} />
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatCard
+          label="Total balance"
+          value={`$${cashBalance.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+        />
+        <StatCard label="Pending activity" value={String(pendingCount)} />
+        <StatCard label="Funding references" value={String(addresses.length)} />
       </div>
 
       <Card>
@@ -81,10 +86,14 @@ export default async function WalletPage() {
             <EmptyState
               icon={<WalletIcon className="size-5" aria-hidden="true" />}
               title="No deposit references yet"
-              description="Generate one to fund your wallet via wire transfer."
+              description="Generate a funding reference to receive a wire transfer."
             />
           ) : (
-            <DepositAddressList addresses={addresses} />
+            <div className="space-y-3">
+              {addresses.map((address) => (
+                <DepositAddressCard key={address.id} address={address} />
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>
