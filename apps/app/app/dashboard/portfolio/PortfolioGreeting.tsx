@@ -15,7 +15,7 @@ export interface PortfolioGreetingProps {
 export function PortfolioGreeting({ name, complianceActive }: PortfolioGreetingProps) {
   return (
     <div className="space-y-4">
-      <h1 className="text-h1 font-semibold tracking-tight text-text-primary">
+      <h1 className="text-[18px] font-semibold tracking-[-0.01em] text-text-primary">
         {timeOfDayGreeting()}
         {name ? `, ${name}` : ""}.
       </h1>

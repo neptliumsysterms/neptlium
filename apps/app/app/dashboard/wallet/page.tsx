@@ -18,7 +18,7 @@ export default async function WalletPage() {
     return (
       <div className="space-y-8 py-8">
         <div>
-          <h1 className="text-h1 font-semibold tracking-tight text-text-primary">Neptlium Wallet</h1>
+          <h1 className="text-[18px] font-semibold tracking-[-0.01em] text-text-primary">Neptlium Wallet</h1>
         </div>
         <Card>
           <EmptyState
@@ -61,8 +61,8 @@ export default async function WalletPage() {
   return (
     <div className="space-y-6 py-4">
       <div>
-        <h1 className="text-[22px] font-semibold tracking-tight text-text-primary">Neptlium Wallet</h1>
-        <p className="mt-1.5 text-body text-text-secondary">
+        <h1 className="text-[18px] font-semibold tracking-[-0.01em] text-text-primary">Neptlium Wallet</h1>
+        <p className="mt-1 text-[13px] text-text-muted">
           Funding references, withdrawals, and transaction history
         </p>
       </div>

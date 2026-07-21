@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { Card } from "./Card";
 import { cn } from "./utils/cn";
 
 export interface StatCardProps {
@@ -19,13 +18,28 @@ const deltaToneClasses: Record<NonNullable<StatCardProps["deltaTone"]>, string> 
 
 export function StatCard({ label, value, delta, deltaTone = "neutral", icon, className }: StatCardProps) {
   return (
-    <Card elevation="raised" className={cn("p-6", className)}>
-      <div className="flex items-start justify-between">
-        <p className="text-body-sm font-medium text-text-secondary">{label}</p>
-        {icon && <span className="text-text-muted">{icon}</span>}
+    <div
+      className={cn(
+        "rounded-md border border-border-default bg-surface-1 px-4 py-4",
+        className
+      )}
+    >
+      <div className="flex items-center justify-between">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-text-muted">
+          {label}
+        </p>
+        {icon && (
+          <span className="text-text-disabled">{icon}</span>
+        )}
       </div>
-      <p className="mt-2 font-mono text-h2 font-semibold text-text-primary">{value}</p>
-      {delta && <p className={cn("mt-1 text-body-sm", deltaToneClasses[deltaTone])}>{delta}</p>}
-    </Card>
+      <p className="mt-2 font-mono text-[22px] font-semibold leading-none tracking-tight text-text-primary">
+        {value}
+      </p>
+      {delta && (
+        <p className={cn("mt-1.5 text-[11px] font-medium", deltaToneClasses[deltaTone])}>
+          {delta}
+        </p>
+      )}
+    </div>
   );
 }

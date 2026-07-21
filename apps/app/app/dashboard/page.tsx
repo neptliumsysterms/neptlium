@@ -32,7 +32,6 @@ export default async function DashboardPage() {
 
   const firstName = profile?.fullName?.split(" ")[0] ?? null;
 
-  // Fetch wallet, portfolio, and recent transactions in parallel
   const [walletResult, portfolioResult] = await Promise.all([
     supabase.from("wallets").select("id").eq("profile_id", profile.id).maybeSingle(),
     supabase
@@ -92,20 +91,18 @@ export default async function DashboardPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* ------------------------------------------------------------------ */}
-      {/* Greeting + account state                                            */}
-      {/* ------------------------------------------------------------------ */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-5">
+      {/* Greeting */}
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-[22px] font-semibold tracking-tight text-text-primary">
+          <h1 className="text-[18px] font-semibold tracking-[-0.01em] text-text-primary">
             {greeting(firstName)}
           </h1>
-          <p className="mt-0.5 text-body-sm text-text-secondary">
+          <p className="mt-0.5 text-[13px] text-text-muted">
             {profile?.email ?? user.email}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div>
           {complianceActive ? (
             <Badge tone="success">Verified</Badge>
           ) : (
@@ -114,9 +111,7 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* ------------------------------------------------------------------ */}
-      {/* KPI cards                                                           */}
-      {/* ------------------------------------------------------------------ */}
+      {/* KPI row */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard
           label="Wallet value"
@@ -125,38 +120,36 @@ export default async function DashboardPage() {
               ? `$${totalValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
               : "—"
           }
-          icon={<WalletIcon className="size-4" />}
+          icon={<WalletIcon className="size-3.5" />}
         />
         <StatCard
           label="Active holdings"
           value={wallet ? String(activeHoldings) : "—"}
-          icon={<Briefcase className="size-4" />}
+          icon={<Briefcase className="size-3.5" />}
         />
         <StatCard
           label="Pending activity"
           value={wallet ? String(pendingCount) : "—"}
-          icon={<ArrowLeftRight className="size-4" />}
+          icon={<ArrowLeftRight className="size-3.5" />}
         />
         <StatCard
           label="Portfolio"
           value={portfolio?.name ?? "None"}
-          icon={<SlidersHorizontal className="size-4" />}
+          icon={<SlidersHorizontal className="size-3.5" />}
         />
       </div>
 
-      {/* ------------------------------------------------------------------ */}
-      {/* Main content grid                                                   */}
-      {/* ------------------------------------------------------------------ */}
-      <div className="grid gap-4 lg:grid-cols-[1fr,320px]">
+      {/* Main grid */}
+      <div className="grid gap-3 lg:grid-cols-[1fr,288px]">
         {/* Recent activity */}
         <Card>
-          <CardHeader className="flex-row items-center justify-between pb-3">
-            <CardTitle className="text-[14px]">Recent Activity</CardTitle>
+          <CardHeader className="flex-row items-center justify-between py-3">
+            <CardTitle>Recent Activity</CardTitle>
             <Link
               href="/dashboard/transactions"
-              className="flex items-center gap-1 text-body-sm text-accent-primary hover:underline"
+              className="flex items-center gap-1 text-[12px] font-medium text-accent-primary hover:underline"
             >
-              View all <ArrowRight className="size-3.5" />
+              View all <ArrowRight className="size-3" />
             </Link>
           </CardHeader>
           <CardContent className="pt-0">
@@ -172,20 +165,22 @@ export default async function DashboardPage() {
                 {recentTransactions.map((tx) => (
                   <div
                     key={tx.id}
-                    className="flex items-center justify-between py-3 text-body-sm"
+                    className="flex items-center justify-between py-2.5"
                   >
                     <div className="min-w-0">
-                      <p className="capitalize text-text-primary">{tx.type}</p>
+                      <p className="text-[13px] font-medium capitalize text-text-primary">
+                        {tx.type}
+                      </p>
                       <p className="text-[11px] text-text-muted">
-                        {tx.asset} &middot; {tx.network} &middot;{" "}
+                        {tx.asset} · {tx.network} ·{" "}
                         {new Date(tx.created_at).toLocaleDateString(undefined, {
                           month: "short",
                           day: "numeric"
                         })}
                       </p>
                     </div>
-                    <div className="ml-4 flex shrink-0 items-center gap-3">
-                      <span className="font-mono text-text-primary">
+                    <div className="ml-4 flex shrink-0 items-center gap-2.5">
+                      <span className="font-mono text-[13px] text-text-primary">
                         {tx.type === "withdrawal" ? "−" : "+"}
                         {tx.amount.toLocaleString("en-US", {
                           minimumFractionDigits: 2,
@@ -204,27 +199,27 @@ export default async function DashboardPage() {
         </Card>
 
         {/* Right column */}
-        <div className="space-y-4">
-          {/* Portfolio summary */}
+        <div className="space-y-3">
+          {/* Portfolio */}
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-[14px]">Portfolio</CardTitle>
+            <CardHeader className="py-3">
+              <CardTitle>Portfolio</CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
               {portfolio ? (
                 <div className="space-y-2">
-                  <p className="text-body font-medium text-text-primary">{portfolio.name}</p>
-                  <div className="flex items-center justify-between text-body-sm">
-                    <span className="text-text-muted">Status</span>
+                  <p className="text-[14px] font-medium text-text-primary">{portfolio.name}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[12px] text-text-muted">Status</span>
                     <Badge tone={portfolio.status === "active" ? "success" : "neutral"}>
                       {portfolio.status}
                     </Badge>
                   </div>
                   <Link
                     href="/dashboard/portfolio"
-                    className="mt-2 flex items-center gap-1 text-body-sm text-accent-primary hover:underline"
+                    className="mt-1 flex items-center gap-1 text-[12px] font-medium text-accent-primary hover:underline"
                   >
-                    View portfolio <ArrowRight className="size-3.5" />
+                    View portfolio <ArrowRight className="size-3" />
                   </Link>
                 </div>
               ) : (
@@ -232,7 +227,7 @@ export default async function DashboardPage() {
                   icon={<Briefcase className="size-4" />}
                   title="No portfolio"
                   description="Complete onboarding to configure your portfolio."
-                  className="py-6"
+                  className="py-5"
                 />
               )}
             </CardContent>
@@ -240,13 +235,13 @@ export default async function DashboardPage() {
 
           {/* Quick actions */}
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-[14px]">Quick actions</CardTitle>
+            <CardHeader className="py-3">
+              <CardTitle>Quick actions</CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {[
-                  { label: "View wallet", href: "/dashboard/wallet", icon: WalletIcon },
+                  { label: "Wallet", href: "/dashboard/wallet", icon: WalletIcon },
                   { label: "Transactions", href: "/dashboard/transactions", icon: ArrowLeftRight },
                   { label: "Documents", href: "/dashboard/documents", icon: FileText },
                   { label: "Settings", href: "/dashboard/settings", icon: SlidersHorizontal }
@@ -254,11 +249,11 @@ export default async function DashboardPage() {
                   <Link
                     key={href}
                     href={href}
-                    className="flex items-center gap-2.5 rounded-md px-2 py-2 text-body-sm text-text-secondary transition-colors hover:bg-surface-2 hover:text-text-primary"
+                    className="flex items-center gap-2.5 rounded-sm px-2 py-2 text-[13px] text-text-secondary transition-colors hover:bg-surface-2 hover:text-text-primary"
                   >
-                    <Icon className="size-4 shrink-0 text-text-muted" aria-hidden="true" />
+                    <Icon className="size-3.5 shrink-0 text-text-muted" aria-hidden="true" />
                     {label}
-                    <ArrowRight className="ml-auto size-3.5 text-text-muted" aria-hidden="true" />
+                    <ArrowRight className="ml-auto size-3 text-text-disabled" aria-hidden="true" />
                   </Link>
                 ))}
               </div>
@@ -269,12 +264,11 @@ export default async function DashboardPage() {
           {!complianceActive && (
             <Card>
               <CardContent className="p-4">
-                <p className="text-body-sm font-medium text-text-primary">
+                <p className="text-[13px] font-medium text-text-primary">
                   Account verification pending
                 </p>
-                <p className="mt-1 text-body-sm text-text-muted">
-                  Capital allocation is unavailable until your account is verified by the
-                  operations team.
+                <p className="mt-1 text-[12px] text-text-muted">
+                  Capital allocation is unavailable until your account is verified.
                 </p>
               </CardContent>
             </Card>

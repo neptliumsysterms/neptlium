@@ -1,9 +1,9 @@
 import React from "react";
 import type { Metadata } from "next";
-import { Inter, IBM_Plex_Mono } from "next/font/google";
+import { Manrope, IBM_Plex_Mono } from "next/font/google";
 import "./global.css";
 
-const interSans = Inter({
+const manrope = Manrope({
   subsets: ["latin"],
   variable: "--font-inter-sans",
   display: "swap"
@@ -27,7 +27,7 @@ export default function RootLayout({
   readonly children: React.ReactNode;
 }): React.ReactElement {
   return (
-    <html lang="en" className={`${interSans.variable} ${ibmPlexMono.variable}`}>
+    <html lang="en" className={`${manrope.variable} ${ibmPlexMono.variable}`}>
       <body className="antialiased">{children}</body>
     </html>
   );
