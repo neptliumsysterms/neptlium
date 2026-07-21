@@ -1,6 +1,7 @@
 import React from "react";
 import type { Metadata } from "next";
 import { Inter, IBM_Plex_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./global.css";
 
 const interSans = Inter({
@@ -28,7 +29,10 @@ export default function RootLayout({
 }): React.ReactElement {
   return (
     <html lang="en" className={`${interSans.variable} ${ibmPlexMono.variable}`}>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }
