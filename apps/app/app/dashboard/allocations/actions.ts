@@ -2,53 +2,107 @@
 
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@netlium/lib/supabase/server";
-import { InternalLedgerCustodyProvider, createNotification } from "@netlium/lib";
-import { requireProvisionedUser } from "@/lib/auth";
+import { createNotification } from "@netlium/lib";
+import { requireRole } from "@/lib/auth";
 
-export type AllocationRequestResult = { readonly ok: true } | { readonly ok: false; readonly error: string };
+export type AllocationActionResult =
+  | { readonly ok: true; readonly requestId: string }
+  | { readonly ok: false; readonly error: string };
 
-export async function requestCapitalAllocationAction(_prevState: AllocationRequestResult | null, formData: FormData): Promise<AllocationRequestResult> {
-  const { user, profile } = await requireProvisionedUser();
+export async function submitAllocationRequestAction(
+  _prevState: AllocationActionResult | null,
+  formData: FormData
+): Promise<AllocationActionResult> {
+  // Requires at minimum analyst role
+  const { user } = await requireRole("analyst");
   const supabase = await createSupabaseServerClient();
-  const walletId = String(formData.get("walletId") ?? "");
-  const portfolioId = String(formData.get("portfolioId") ?? "");
-  const asset = String(formData.get("asset") ?? "");
-  const network = String(formData.get("network") ?? "");
-  const amount = Number(formData.get("amount"));
-  const idempotencyKey = String(formData.get("idempotencyKey") ?? globalThis.crypto.randomUUID());
 
-  if (!walletId || !portfolioId || !asset || !network || !Number.isFinite(amount) || amount <= 0) {
-    return { ok: false, error: "Choose a wallet, portfolio, asset/network, and positive amount." };
+  const walletId = String(formData.get("wallet_id") ?? "").trim();
+  const portfolioId = String(formData.get("portfolio_id") ?? "").trim() || null;
+  const asset = String(formData.get("asset") ?? "").trim();
+  const network = String(formData.get("network") ?? "").trim();
+  const rawAmount = formData.get("amount");
+  const notes = String(formData.get("notes") ?? "").trim() || null;
+  const idempotencyKey = String(formData.get("idempotency_key") ?? "").trim() || null;
+
+  const amount = Number(rawAmount);
+
+  if (!walletId || !asset || !network) {
+    return { ok: false, error: "Wallet, asset, and network are required." };
   }
 
-  const [{ data: wallet }, { data: portfolio }] = await Promise.all([
-    supabase.from("wallets").select("id").eq("id", walletId).eq("profile_id", profile.id).maybeSingle(),
-    supabase.from("investment_portfolios").select("id").eq("id", portfolioId).eq("profile_id", profile.id).maybeSingle()
-  ]);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return { ok: false, error: "Amount must be greater than zero." };
+  }
 
-  if (!wallet || !portfolio) return { ok: false, error: "Wallet or portfolio is not available for this account." };
-  if (profile.complianceStatus !== "active") return { ok: false, error: "Complete account verification before allocating capital." };
+  // Verify wallet belongs to this user
+  const { data: wallet } = await supabase
+    .from("wallets")
+    .select("id")
+    .eq("id", walletId)
+    .eq("profile_id", user.id)
+    .maybeSingle();
 
-  const provider = new InternalLedgerCustodyProvider(supabase);
-  const balances = await provider.getBalances(wallet.id);
-  const available = balances.find((balance) => balance.asset === asset && balance.network === network)?.amount ?? 0;
-  if (amount > available) return { ok: false, error: `Insufficient available balance. Available: ${available.toFixed(2)} ${asset}.` };
+  if (!wallet) {
+    return { ok: false, error: "Wallet not found." };
+  }
 
-  const { error } = await supabase.from("capital_allocation_requests").insert({
-    profile_id: profile.id,
-    wallet_id: wallet.id,
-    portfolio_id: portfolio.id,
-    asset,
-    network,
-    amount,
-    status: "pending_review",
-    idempotency_key: idempotencyKey
-  });
+  // Verify portfolio belongs to this user (if provided)
+  if (portfolioId) {
+    const { data: portfolio } = await supabase
+      .from("investment_portfolios")
+      .select("id")
+      .eq("id", portfolioId)
+      .eq("profile_id", user.id)
+      .maybeSingle();
 
-  if (error) return { ok: false, error: "Unable to submit allocation request." };
+    if (!portfolio) {
+      return { ok: false, error: "Portfolio not found." };
+    }
+  }
 
-  await createNotification(supabase, user.id, "allocation", "Allocation requested", `${amount.toFixed(2)} ${asset} allocation is pending review.`);
+  // Check idempotency — return existing request if key already submitted
+  if (idempotencyKey) {
+    const { data: existing } = await supabase
+      .from("capital_allocation_requests")
+      .select("id")
+      .eq("idempotency_key", idempotencyKey)
+      .maybeSingle();
+
+    if (existing) {
+      revalidatePath("/dashboard/allocations");
+      return { ok: true, requestId: existing.id };
+    }
+  }
+
+  const { data, error } = await supabase
+    .from("capital_allocation_requests")
+    .insert({
+      profile_id: user.id,
+      wallet_id: walletId,
+      portfolio_id: portfolioId,
+      asset,
+      network,
+      amount,
+      status: "pending_review",
+      notes,
+      idempotency_key: idempotencyKey
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    return { ok: false, error: "Unable to submit allocation request. Please try again." };
+  }
+
+  await createNotification(
+    supabase,
+    user.id,
+    "system",
+    "Allocation request submitted",
+    `${amount.toFixed(2)} ${asset} allocation request is pending review.`
+  );
+
   revalidatePath("/dashboard/allocations");
-  revalidatePath("/dashboard");
-  return { ok: true };
+  return { ok: true, requestId: data.id };
 }

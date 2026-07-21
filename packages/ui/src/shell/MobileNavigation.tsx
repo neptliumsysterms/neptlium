@@ -1,241 +1,157 @@
 "use client";
 
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useState, type ReactElement, type ReactNode } from "react";
-import type { NavItem } from "./Sidebar";
+import { useState } from "react";
+import { Home, Briefcase, Wallet, ArrowLeftRight, MoreHorizontal, X } from "lucide-react";
 import { cn } from "../components/utils/cn";
+import type { NavItem } from "./Sidebar";
 
-export interface MobileNavigationProps {
-  readonly primaryItems: readonly NavItem[];
-  readonly menuItems: readonly NavItem[];
-  readonly footer?: ReactNode;
-}
-
-const GROUP_ORDER = [
-  "Operations",
-  "Records",
-  "Account",
-  "Admin",
-  "Workspace",
-  "Core",
+const PRIMARY_TABS = [
+  { label: "Home", href: "/dashboard", icon: Home, exact: true },
+  { label: "Portfolio", href: "/dashboard/portfolio", icon: Briefcase, exact: false },
+  { label: "Wallet", href: "/dashboard/wallet", icon: Wallet, exact: false },
+  { label: "Activity", href: "/dashboard/transactions", icon: ArrowLeftRight, exact: false }
 ] as const;
 
-function groupItems(
-  items: readonly NavItem[],
-): Array<readonly [string, readonly NavItem[]]> {
-  const groups = items.reduce<Record<string, NavItem[]>>((acc, item) => {
-    const group = item.group ?? "Account";
-    acc[group] = [...(acc[group] ?? []), item];
-    return acc;
-  }, {});
-
-  return Object.entries(groups).sort(([a], [b]) => {
-    const aIndex = GROUP_ORDER.indexOf(a as (typeof GROUP_ORDER)[number]);
-    const bIndex = GROUP_ORDER.indexOf(b as (typeof GROUP_ORDER)[number]);
-    return (aIndex === -1 ? 99 : aIndex) - (bIndex === -1 ? 99 : bIndex);
-  });
+export interface MobileNavigationProps {
+  readonly moreItems: readonly NavItem[];
 }
 
-export function MobileNavigation({
-  primaryItems,
-  menuItems,
-  footer,
-}: MobileNavigationProps): ReactElement {
+export function MobileNavigation({ moreItems }: MobileNavigationProps) {
   const pathname = usePathname();
-  const [isOpen, setIsOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+
+  const primaryHrefs = new Set<string>(PRIMARY_TABS.map((t) => t.href));
+  const isMoreActive =
+    !PRIMARY_TABS.some((t) =>
+      t.exact ? pathname === t.href : pathname === t.href || pathname.startsWith(t.href + "/")
+    ) && moreItems.some((item) => pathname === item.href || pathname.startsWith(item.href + "/"));
 
   return (
     <>
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-surface-overlay backdrop-blur-sm lg:hidden"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
-
+      {/* Fixed bottom navigation bar */}
       <nav
-        aria-label="Mobile dashboard"
-        className="fixed inset-x-0 bottom-0 z-50 border-t border-border-hairline bg-sidebar/95 px-[max(env(safe-area-inset-left),0.5rem)] pb-[calc(env(safe-area-inset-bottom)+0.375rem)] pt-1.5 backdrop-blur lg:hidden"
+        aria-label="Primary navigation"
+        className="fixed bottom-0 left-0 right-0 z-40 border-t border-border-hairline bg-sidebar md:hidden"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
-        <div className="mx-auto grid max-w-md grid-cols-5 gap-1">
-          {primaryItems.slice(0, 4).map((item) => {
-            const isActive =
-              pathname === item.href ||
-              (item.href !== "/dashboard" &&
-                pathname.startsWith(`${item.href}/`));
+        <div className="flex h-16 items-stretch">
+          {PRIMARY_TABS.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = tab.exact
+              ? pathname === tab.href
+              : pathname === tab.href || pathname.startsWith(tab.href + "/");
             return (
               <Link
-                key={item.href}
-                href={item.href}
+                key={tab.href}
+                href={tab.href}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "flex min-h-12 flex-col items-center justify-center gap-1 rounded-lg px-1 text-[0.69rem] font-medium focus-visible:outline-none focus-visible:shadow-[var(--shadow-focus-ring)]",
-                  isActive
-                    ? "bg-surface-2 text-text-primary"
-                    : "text-text-muted hover:text-text-primary",
+                  "flex flex-1 flex-col items-center justify-center gap-1 text-[10px] font-medium leading-none transition-colors duration-150",
+                  isActive ? "text-accent-primary" : "text-text-muted hover:text-text-secondary"
                 )}
-                onClick={() => setIsOpen(false)}
               >
-                <span
-                  className={cn(
-                    "[&>svg]:size-4",
-                    isActive ? "text-accent-primary" : "text-text-muted",
-                  )}
-                  aria-hidden="true"
-                >
-                  {item.icon}
-                </span>
-                <span className="max-w-full truncate">
-                  {item.label.replace("Neptlium ", "")}
-                </span>
+                <Icon className="size-[22px]" aria-hidden="true" />
+                <span>{tab.label}</span>
               </Link>
             );
           })}
 
+          {/* More tab — shows remaining nav items in a bottom sheet */}
           <button
             type="button"
-            aria-expanded={isOpen}
-            aria-controls="mobile-dashboard-menu"
+            onClick={() => setMoreOpen(true)}
+            aria-expanded={moreOpen}
+            aria-label="More options"
             className={cn(
-              "flex min-h-12 flex-col items-center justify-center gap-1 rounded-lg px-1 text-[0.69rem] font-medium focus-visible:outline-none focus-visible:shadow-[var(--shadow-focus-ring)]",
-              isOpen
-                ? "bg-surface-2 text-text-primary"
-                : "text-text-muted hover:text-text-primary",
+              "flex flex-1 flex-col items-center justify-center gap-1 text-[10px] font-medium leading-none transition-colors duration-150",
+              isMoreActive ? "text-accent-primary" : "text-text-muted hover:text-text-secondary"
             )}
-            onClick={() => setIsOpen((current) => !current)}
           >
-            <Menu className="size-4" aria-hidden="true" />
+            <MoreHorizontal className="size-[22px]" aria-hidden="true" />
             <span>More</span>
           </button>
         </div>
       </nav>
 
-      <aside
-        id="mobile-dashboard-menu"
-        aria-label="More dashboard destinations"
-        className={cn(
-          "fixed bottom-0 left-0 top-0 z-50 flex w-[min(84vw,22rem)] flex-col border-r border-border-default bg-sidebar shadow-lg transition-transform duration-150 ease-out lg:hidden",
-          isOpen ? "translate-x-0" : "-translate-x-full",
-        )}
-      >
-        <div className="flex min-h-20 items-center justify-between border-b border-border-hairline px-5 pt-[env(safe-area-inset-top)]">
-          <Link
-            href="/dashboard"
-            className="text-sm font-semibold uppercase tracking-[0.34em] text-text-primary focus-visible:outline-none focus-visible:shadow-[var(--shadow-focus-ring)]"
-            onClick={() => setIsOpen(false)}
-          >
-            Neptlium
-          </Link>
-          <button
-            type="button"
-            aria-label="Close menu"
-            className="flex size-11 items-center justify-center rounded-xl text-text-muted hover:bg-surface-2 hover:text-text-primary focus-visible:outline-none focus-visible:shadow-[var(--shadow-focus-ring)]"
-            onClick={() => setIsOpen(false)}
-          >
-            <X className="size-5" aria-hidden="true" />
-          </button>
-        </div>
+      {/* More bottom sheet */}
+      {moreOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-50 bg-surface-overlay md:hidden"
+            onClick={() => setMoreOpen(false)}
+            aria-hidden="true"
+          />
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-          <div className="space-y-6">
-            <section aria-labelledby="mobile-primary-nav">
-              <p
-                id="mobile-primary-nav"
-                className="px-2 pb-2 text-[0.68rem] font-medium uppercase tracking-[0.14em] text-text-disabled"
+          {/* Sheet */}
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="More navigation"
+            className="fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl border-t border-border-default bg-surface-3 md:hidden"
+            style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+          >
+            {/* Sheet header */}
+            <div className="flex items-center justify-between px-5 py-4">
+              <span className="text-body font-semibold text-text-primary">More</span>
+              <button
+                type="button"
+                onClick={() => setMoreOpen(false)}
+                aria-label="Close"
+                className="flex size-8 items-center justify-center rounded-full bg-surface-2 text-text-muted hover:text-text-secondary"
               >
-                Primary navigation
-              </p>
-              <div className="space-y-1">
-                {primaryItems.slice(0, 4).map((item) => {
-                  const isActive =
-                    pathname === item.href ||
-                    (item.href !== "/dashboard" &&
-                      pathname.startsWith(`${item.href}/`));
-                  return (
-                    <Link
-                      key={`drawer-primary-${item.href}`}
-                      href={item.href}
-                      aria-current={isActive ? "page" : undefined}
-                      className={cn(
-                        "flex min-h-12 items-center gap-3 rounded-xl px-3 text-sm font-medium focus-visible:outline-none focus-visible:shadow-[var(--shadow-focus-ring)]",
-                        isActive
-                          ? "bg-surface-2 text-text-primary"
-                          : "text-text-secondary hover:bg-surface-2/70 hover:text-text-primary",
-                      )}
-                      onClick={() => setIsOpen(false)}
-                    >
-                      <span
-                        className={cn(
-                          "text-text-muted [&>svg]:size-4",
-                          isActive && "text-accent-primary",
-                        )}
-                        aria-hidden="true"
-                      >
-                        {item.icon}
-                      </span>
-                      {item.label}
-                    </Link>
-                  );
-                })}
-              </div>
-            </section>
+                <X className="size-4" aria-hidden="true" />
+              </button>
+            </div>
 
-            {groupItems(menuItems).map(([group, items]) => (
-              <section
-                key={group}
-                aria-labelledby={`mobile-${group.toLowerCase()}-nav`}
-              >
-                <p
-                  id={`mobile-${group.toLowerCase()}-nav`}
-                  className="px-2 pb-2 text-[0.68rem] font-medium uppercase tracking-[0.14em] text-text-disabled"
-                >
-                  {group}
+            {/* Sheet items */}
+            <div className="max-h-[60vh] overflow-y-auto px-4 pb-6">
+              {moreItems.length === 0 ? (
+                <p className="py-4 text-center text-body-sm text-text-muted">
+                  No additional navigation items.
                 </p>
-                <div className="space-y-1">
-                  {items.map((item) => {
-                    const isActive =
-                      pathname === item.href ||
-                      (item.href !== "/dashboard" &&
-                        pathname.startsWith(`${item.href}/`));
-                    return (
-                      <Link
-                        key={`${group}-${item.href}-${item.label}`}
-                        href={item.href}
-                        className={cn(
-                          "flex min-h-12 items-center gap-3 rounded-xl px-3 text-sm font-medium focus-visible:outline-none focus-visible:shadow-[var(--shadow-focus-ring)]",
-                          isActive
-                            ? "bg-surface-2 text-text-primary"
-                            : "text-text-secondary hover:bg-surface-2/70 hover:text-text-primary",
-                        )}
-                        onClick={() => setIsOpen(false)}
-                      >
-                        <span
+              ) : (
+                <div className="space-y-0.5">
+                  {moreItems
+                    .filter((item) => !primaryHrefs.has(item.href))
+                    .map((item) => {
+                      const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setMoreOpen(false)}
+                          aria-current={isActive ? "page" : undefined}
                           className={cn(
-                            "text-text-muted [&>svg]:size-4",
-                            isActive && "text-accent-primary",
+                            "flex items-center gap-3 rounded-lg px-3 py-3 text-body-sm font-medium transition-colors duration-150",
+                            isActive
+                              ? "bg-surface-2 text-accent-primary"
+                              : "text-text-secondary hover:bg-surface-2 hover:text-text-primary"
                           )}
-                          aria-hidden="true"
                         >
-                          {item.icon}
-                        </span>
-                        {item.label}
-                      </Link>
-                    );
-                  })}
+                          {item.icon && (
+                            <span
+                              className={cn(
+                                "shrink-0",
+                                isActive ? "text-accent-primary" : "text-text-muted"
+                              )}
+                              aria-hidden="true"
+                            >
+                              {item.icon}
+                            </span>
+                          )}
+                          {item.label}
+                        </Link>
+                      );
+                    })}
                 </div>
-              </section>
-            ))}
+              )}
+            </div>
           </div>
-        </div>
-
-        {footer && (
-          <div className="shrink-0 border-t border-border-hairline px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-4">
-            {footer}
-          </div>
-        )}
-      </aside>
+        </>
+      )}
     </>
   );
 }

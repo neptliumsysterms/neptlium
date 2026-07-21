@@ -33,7 +33,7 @@ export default async function PortfolioPage() {
   }
 
   return (
-    <div className="space-y-5 sm:space-y-6">
+    <div className="space-y-5">
       <PortfolioGreeting name={name} complianceActive={profile?.complianceStatus === "active"} />
 
       {portfolio && (
@@ -48,7 +48,7 @@ export default async function PortfolioPage() {
         </Card>
       )}
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 md:grid-cols-2">
         <StatCard label="Total Portfolio Value" value={`$${totalValue.toFixed(2)}`} />
         <StatCard label="Active Holdings" value={String(activeHoldings)} />
       </div>

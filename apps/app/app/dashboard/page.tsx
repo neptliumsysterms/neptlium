@@ -1,301 +1,280 @@
 import Link from "next/link";
 import {
+  ArrowRight,
   ArrowLeftRight,
+  Briefcase,
   FileText,
-  TrendingUp,
-  Wallet as WalletIcon,
+  SlidersHorizontal,
+  Wallet as WalletIcon
 } from "lucide-react";
-import { Badge, EmptyState, StatCard } from "@netlium/ui";
+import {
+  Badge,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  EmptyState,
+  StatCard
+} from "@netlium/ui";
 import { createSupabaseServerClient } from "@netlium/lib/supabase/server";
 import { InternalLedgerCustodyProvider } from "@netlium/lib";
 import { requireProvisionedUser } from "@/lib/auth";
-import {
-  BlueprintPanel,
-  DashboardSection,
-  MetricRow,
-  PageHeader,
-  QuickAction,
-} from "./components";
 
-function money(value: number, currency = "USD") {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 2,
-  }).format(value);
+function greeting(name: string | null): string {
+  const hour = new Date().getUTCHours();
+  const part = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  return name ? `${part}, ${name.split(" ")[0]}` : part;
 }
 
-export default async function DashboardIndexPage() {
+export default async function DashboardPage() {
   const { user, profile } = await requireProvisionedUser();
   const supabase = await createSupabaseServerClient();
-  const provider = new InternalLedgerCustodyProvider(supabase);
-  const [
-    { data: portfolio },
-    { data: wallet },
-    { data: documents },
-    { data: notifications },
-  ] = await Promise.all([
+
+  const firstName = profile?.fullName?.split(" ")[0] ?? null;
+
+  const [walletResult, portfolioResult] = await Promise.all([
+    supabase.from("wallets").select("id").eq("profile_id", profile.id).maybeSingle(),
     supabase
       .from("investment_portfolios")
-      .select("id, name, currency, status")
+      .select("id, name, status")
       .eq("profile_id", profile.id)
-      .maybeSingle(),
-    supabase
-      .from("wallets")
-      .select("id")
-      .eq("profile_id", profile.id)
-      .maybeSingle(),
-    supabase
-      .from("documents")
-      .select("id, created_at")
-      .eq("profile_id", profile.id)
-      .order("created_at", { ascending: false })
-      .limit(3),
-    supabase
-      .from("notifications")
-      .select("id, read_at, created_at")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(4),
+      .maybeSingle()
   ]);
-  const [balances, transactions, addresses] = wallet
-    ? await Promise.all([
-        provider.getBalances(wallet.id),
-        provider.listTransactions(wallet.id),
-        provider.listDepositAddresses(wallet.id),
-      ])
-    : ([[], [], []] as const);
-  const cashBalance =
-    balances.find((balance) => balance.asset === "USD")?.amount ?? 0;
-  const fundedBalances = balances.filter((balance) => balance.amount > 0);
-  const totalCapital = fundedBalances.reduce(
-    (sum, balance) => sum + balance.amount,
-    0,
-  );
-  const pendingTransactions = transactions.filter((transaction) =>
-    ["pending", "pending_review", "processing"].includes(transaction.status),
-  ).length;
-  const completedTransactions = transactions.filter(
-    (transaction) => transaction.status === "completed",
-  ).length;
-  const displayName =
-    profile.fullName ??
-    profile.displayName ??
-    user.email?.split("@")[0] ??
-    "there";
-  const complianceStatus = profile.complianceStatus ?? "pending";
+
+  const wallet = walletResult.data;
+  const portfolio = portfolioResult.data;
+
+  let totalValue = 0;
+  let pendingCount = 0;
+  let activeHoldings = 0;
+  let recentTransactions: Array<{
+    id: string;
+    type: string;
+    asset: string;
+    network: string;
+    amount: number;
+    status: string;
+    created_at: string;
+  }> = [];
+
+  if (wallet) {
+    const provider = new InternalLedgerCustodyProvider(supabase);
+    const [balances, transactions] = await Promise.all([
+      provider.getBalances(wallet.id),
+      provider.listTransactions(wallet.id)
+    ]);
+
+    totalValue = balances.reduce((sum, b) => sum + b.amount, 0);
+    activeHoldings = balances.filter((b) => b.amount > 0).length;
+    pendingCount = transactions.filter(
+      (t) => t.status === "pending" || t.status === "pending_review"
+    ).length;
+    recentTransactions = transactions.slice(0, 5).map((t) => ({
+      id: t.id,
+      type: t.type,
+      asset: t.asset,
+      network: t.network,
+      amount: t.amount,
+      status: t.status,
+      created_at: t.createdAt
+    }));
+  }
+
+  const complianceActive = profile?.complianceStatus === "active";
+
+  const STATUS_TONE: Record<string, "success" | "warning" | "danger" | "neutral"> = {
+    completed: "success",
+    pending: "warning",
+    pending_review: "warning",
+    failed: "danger",
+    cancelled: "neutral"
+  };
 
   return (
-    <div className="space-y-4 sm:space-y-5">
-      <PageHeader
-        eyebrow="Institutional dashboard"
-        title={`Good day, ${displayName}`}
-        description="Live account state from your authenticated Neptlium records. Empty states are shown until capital activity is confirmed."
-        actions={
-          <Badge tone={complianceStatus === "active" ? "success" : "warning"}>
-            {complianceStatus === "active"
-              ? "Verified"
-              : "Verification pending"}
-          </Badge>
-        }
-      />
-      <section
-        aria-label="Account metrics"
-        className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
-      >
+    <div className="space-y-5">
+      {/* Greeting */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-[18px] font-semibold tracking-[-0.01em] text-text-primary">
+            {greeting(firstName)}
+          </h1>
+          <p className="mt-0.5 text-[13px] text-text-muted">
+            {profile?.email ?? user.email}
+          </p>
+        </div>
+        <div>
+          {complianceActive ? (
+            <Badge tone="success">Verified</Badge>
+          ) : (
+            <Badge tone="warning">Pending verification</Badge>
+          )}
+        </div>
+      </div>
+
+      {/* KPI row */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard
-          label="Total capital"
+          label="Wallet value"
           value={
-            totalCapital > 0
-              ? money(totalCapital, portfolio?.currency ?? "USD")
+            wallet
+              ? `$${totalValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
               : "—"
           }
-          delta={portfolio ? portfolio.name : "No portfolio yet"}
+          icon={<WalletIcon className="size-3.5" />}
         />
         <StatCard
-          label="Available balance"
-          value={wallet ? money(cashBalance) : "—"}
-          delta={wallet ? "Wallet ledger" : "Wallet not provisioned"}
+          label="Active holdings"
+          value={wallet ? String(activeHoldings) : "—"}
+          icon={<Briefcase className="size-3.5" />}
         />
         <StatCard
           label="Pending activity"
-          value={String(pendingTransactions)}
-          delta={`${completedTransactions} completed`}
+          value={wallet ? String(pendingCount) : "—"}
+          icon={<ArrowLeftRight className="size-3.5" />}
         />
         <StatCard
-          label="Deposit references"
-          value={wallet ? String(addresses.length) : "—"}
-          delta={addresses.length ? "Provider assigned" : "Awaiting provider"}
+          label="Portfolio"
+          value={portfolio?.name ?? "None"}
+          icon={<SlidersHorizontal className="size-3.5" />}
         />
-      </section>
-      <div className="grid gap-4 xl:grid-cols-12">
-        <DashboardSection
-          title="Portfolio overview"
-          description="Performance charts remain empty until confirmed portfolio history exists."
-          className="xl:col-span-7"
-          action={<Link href="/dashboard/portfolio">View portfolio</Link>}
-        >
-          {portfolio ? (
-            <div className="grid gap-4 lg:grid-cols-[1fr_14rem]">
-              <BlueprintPanel
-                title={
-                  totalCapital > 0
-                    ? "Portfolio history pending"
-                    : "No performance data yet"
-                }
-                description="Neptlium will display performance after your first funded allocation has settled."
+      </div>
+
+      {/* Main grid */}
+      <div className="grid gap-3 lg:grid-cols-[1fr,288px]">
+        {/* Recent activity */}
+        <Card>
+          <CardHeader className="flex-row items-center justify-between py-3">
+            <CardTitle>Recent Activity</CardTitle>
+            <Link
+              href="/dashboard/transactions"
+              className="flex items-center gap-1 text-[12px] font-medium text-accent-primary hover:underline"
+            >
+              View all <ArrowRight className="size-3" />
+            </Link>
+          </CardHeader>
+          <CardContent className="pt-0">
+            {recentTransactions.length === 0 ? (
+              <EmptyState
+                icon={<ArrowLeftRight className="size-4" />}
+                title="No transactions yet"
+                description="Activity will appear here once your wallet begins moving capital."
+                className="py-8"
               />
-              <div className="space-y-1">
-                <MetricRow label="Portfolio" value={portfolio.name} />
-                <MetricRow label="Currency" value={portfolio.currency} />
-                <MetricRow label="Status" value={portfolio.status} />
-                <MetricRow
-                  label="Ledger-backed value"
-                  value={
-                    totalCapital > 0
-                      ? money(totalCapital, portfolio.currency)
-                      : "—"
-                  }
-                />
-              </div>
-            </div>
-          ) : (
-            <EmptyState
-              title="No portfolio has been created yet"
-              description="Add a portfolio to begin tracking allocated capital."
-            />
-          )}
-        </DashboardSection>
-        <DashboardSection
-          title="Asset allocation"
-          description="Allocation is derived from completed wallet balances."
-          className="xl:col-span-5"
-        >
-          {fundedBalances.length ? (
-            <div className="space-y-3">
-              {fundedBalances.map((balance) => {
-                const percent =
-                  totalCapital > 0
-                    ? Math.max(0, (balance.amount / totalCapital) * 100)
-                    : 0;
-                return (
-                  <div key={`${balance.asset}-${balance.network}`}>
-                    <div className="mb-2 flex items-center justify-between text-sm">
-                      <span className="text-text-secondary">
-                        {balance.asset} · {balance.network}
-                      </span>
-                      <span className="font-mono text-text-primary">
-                        {percent.toFixed(1)}%
-                      </span>
+            ) : (
+              <div className="divide-y divide-border-hairline">
+                {recentTransactions.map((tx) => (
+                  <div
+                    key={tx.id}
+                    className="flex items-center justify-between py-2.5"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-medium capitalize text-text-primary">
+                        {tx.type}
+                      </p>
+                      <p className="text-[11px] text-text-muted">
+                        {tx.asset} · {tx.network} ·{" "}
+                        {new Date(tx.created_at).toLocaleDateString(undefined, {
+                          month: "short",
+                          day: "numeric"
+                        })}
+                      </p>
                     </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-surface-3">
-                      <div
-                        className="h-full rounded-full bg-accent-primary"
-                        style={{ width: `${percent}%` }}
-                      />
+                    <div className="ml-4 flex shrink-0 items-center gap-2.5">
+                      <span className="font-mono text-[13px] text-text-primary">
+                        {tx.type === "withdrawal" ? "−" : "+"}
+                        {tx.amount.toLocaleString("en-US", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2
+                        })}
+                      </span>
+                      <Badge tone={STATUS_TONE[tx.status] ?? "neutral"}>
+                        {tx.status.replace("_", " ")}
+                      </Badge>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          ) : (
-            <EmptyState
-              title="No capital has been allocated"
-              description="Completed deposits will define your allocation view."
-            />
-          )}
-        </DashboardSection>
-        <DashboardSection title="Recent activity" className="xl:col-span-5">
-          {transactions.length ? (
-            <div className="space-y-1">
-              {transactions.slice(0, 5).map((transaction) => (
-                <MetricRow
-                  key={transaction.id}
-                  label={`${transaction.type} · ${transaction.asset}`}
-                  value={`${transaction.type === "withdrawal" ? "−" : "+"}${money(transaction.amount)}`}
-                  tone={
-                    transaction.status === "pending" ? "warning" : "default"
-                  }
-                />
-              ))}
-            </div>
-          ) : (
-            <EmptyState
-              title="No wallet activity yet"
-              description="Deposits and withdrawals will appear here when recorded."
-            />
-          )}
-        </DashboardSection>
-        <DashboardSection title="Wallet summary" className="xl:col-span-4">
-          <div className="space-y-1">
-            <MetricRow
-              label="Wallet"
-              value={wallet ? "Provisioned" : "Not provisioned"}
-              tone={wallet ? "success" : "warning"}
-            />
-            <MetricRow label="Cash balance" value={money(cashBalance)} />
-            <MetricRow
-              label="Deposit addresses"
-              value={String(addresses.length)}
-            />
-            <MetricRow
-              label="Documents"
-              value={String(documents?.length ?? 0)}
-            />
-          </div>
-        </DashboardSection>
-        <DashboardSection title="Quick actions" className="xl:col-span-3">
-          <div className="grid gap-2">
-            <QuickAction
-              href="/dashboard/wallet"
-              label="Open wallet"
-              description="Balances and deposit destinations"
-              icon={<WalletIcon />}
-            />
-            <QuickAction
-              href="/dashboard/allocations"
-              label="Allocate capital"
-              description="Create a reviewed request"
-              icon={<TrendingUp />}
-            />
-            <QuickAction
-              href="/dashboard/transactions"
-              label="Review activity"
-              description="Audit ledger movements"
-              icon={<ArrowLeftRight />}
-            />
-            <QuickAction
-              href="/dashboard/documents"
-              label="Documents"
-              description="View issued files"
-              icon={<FileText />}
-            />
-          </div>
-        </DashboardSection>
-      </div>
-      <DashboardSection
-        title="Account state"
-        description="Verification and onboarding status for this authenticated profile."
-      >
-        <div className="grid gap-3 sm:grid-cols-3">
-          <MetricRow
-            label="Compliance"
-            value={complianceStatus}
-            tone={complianceStatus === "active" ? "success" : "warning"}
-          />
-          <MetricRow
-            label="Provisioned"
-            value={profile.provisionedAt ? "Complete" : "Incomplete"}
-            tone={profile.provisionedAt ? "success" : "warning"}
-          />
-          <MetricRow
-            label="Unread notifications"
-            value={String(
-              (notifications ?? []).filter((item) => !item.read_at).length,
+                ))}
+              </div>
             )}
-          />
+          </CardContent>
+        </Card>
+
+        {/* Right column */}
+        <div className="space-y-3">
+          {/* Portfolio */}
+          <Card>
+            <CardHeader className="py-3">
+              <CardTitle>Portfolio</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              {portfolio ? (
+                <div className="space-y-2">
+                  <p className="text-[14px] font-medium text-text-primary">{portfolio.name}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[12px] text-text-muted">Status</span>
+                    <Badge tone={portfolio.status === "active" ? "success" : "neutral"}>
+                      {portfolio.status}
+                    </Badge>
+                  </div>
+                  <Link
+                    href="/dashboard/portfolio"
+                    className="mt-1 flex items-center gap-1 text-[12px] font-medium text-accent-primary hover:underline"
+                  >
+                    View portfolio <ArrowRight className="size-3" />
+                  </Link>
+                </div>
+              ) : (
+                <EmptyState
+                  icon={<Briefcase className="size-4" />}
+                  title="No portfolio"
+                  description="Complete onboarding to configure your portfolio."
+                  className="py-5"
+                />
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Quick actions */}
+          <Card>
+            <CardHeader className="py-3">
+              <CardTitle>Quick actions</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="space-y-0.5">
+                {[
+                  { label: "Wallet", href: "/dashboard/wallet", icon: WalletIcon },
+                  { label: "Transactions", href: "/dashboard/transactions", icon: ArrowLeftRight },
+                  { label: "Documents", href: "/dashboard/documents", icon: FileText },
+                  { label: "Settings", href: "/dashboard/settings", icon: SlidersHorizontal }
+                ].map(({ label, href, icon: Icon }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    className="flex items-center gap-2.5 rounded-sm px-2 py-2 text-[13px] text-text-secondary transition-colors hover:bg-surface-2 hover:text-text-primary"
+                  >
+                    <Icon className="size-3.5 shrink-0 text-text-muted" aria-hidden="true" />
+                    {label}
+                    <ArrowRight className="ml-auto size-3 text-text-disabled" aria-hidden="true" />
+                  </Link>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Compliance notice */}
+          {!complianceActive && (
+            <Card>
+              <CardContent className="p-4">
+                <p className="text-[13px] font-medium text-text-primary">
+                  Account verification pending
+                </p>
+                <p className="mt-1 text-[12px] text-text-muted">
+                  Capital allocation is unavailable until your account is verified.
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </div>
-      </DashboardSection>
+      </div>
     </div>
   );
 }
